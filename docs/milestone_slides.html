@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fraud Shield — Milestone Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-900: #0a0f1e;
+    --blue-800: #0d1a35;
+    --blue-700: #112248;
+    --blue-600: #1a3568;
+    --accent:   #3b82f6;
+    --accent2:  #06b6d4;
+    --gold:     #f59e0b;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --white:    #ffffff;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --text:     #e2e8f0;
+    --text-dim: #94a3b8;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #111827;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px 20px;
+  }
+
+  /* ─── SLIDE CONTAINER ─────────────────────────────── */
+  .slide {
+    width: 794px;      /* A4 portrait at 96dpi */
+    min-height: 1123px;
+    background: var(--blue-900);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 80px rgba(0,0,0,.7);
+    page-break-after: always;
+  }
+
+  /* ─── DECORATIVE GRID ─────────────────────────────── */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  /* ─── ACCENT LINE ─────────────────────────────────── */
+  .accent-bar {
+    height: 5px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 60%, transparent 100%);
+  }
+
+  /* ─── SLIDE HEADER ────────────────────────────────── */
+  .slide-header {
+    padding: 36px 48px 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .slide-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .slide-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(59,130,246,.4), transparent);
+  }
+  .slide-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.15;
+    letter-spacing: -.5px;
+  }
+  .slide-subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-weight: 400;
+  }
+
+  /* ─── BODY ────────────────────────────────────────── */
+  .slide-body {
+    padding: 20px 48px 36px;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ─── FOOTER ──────────────────────────────────────── */
+  .slide-footer {
+    position: relative;
+    z-index: 2;
+    padding: 14px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(59,130,246,.15);
+    font-size: 10px;
+    color: var(--gray-500);
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+  .slide-footer .logo-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* ─── STAT CARDS ──────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .stat-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 18px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-weight: 500;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .stat-card.accent .stat-value { color: var(--accent); }
+  .stat-card.gold .stat-value { color: var(--gold); }
+  .stat-card.green .stat-value { color: var(--green); }
+  .stat-card.red .stat-value { color: var(--red); }
+
+  /* ─── TABLE ───────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+  }
+  .data-table th {
+    background: rgba(59,130,246,.15);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .data-table th:first-child { border-radius: 8px 0 0 0; }
+  .data-table th:last-child  { border-radius: 0 8px 0 0; }
+  .data-table td {
+    padding: 9px 14px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    vertical-align: top;
+  }
+  .data-table tr:hover td { background: rgba(255,255,255,.03); }
+  .data-table .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+  }
+  .data-table .highlight { color: var(--gold); font-weight: 600; }
+  .data-table .green { color: var(--green); font-weight: 600; }
+  .data-table .red { color: var(--red); }
+
+  /* ─── PILL BADGE ──────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .badge-blue   { background: rgba(59,130,246,.2);  color: #93c5fd; }
+  .badge-green  { background: rgba(16,185,129,.2);  color: #6ee7b7; }
+  .badge-gold   { background: rgba(245,158,11,.2);  color: #fcd34d; }
+  .badge-red    { background: rgba(239,68,68,.2);   color: #fca5a5; }
+  .badge-cyan   { background: rgba(6,182,212,.2);   color: #67e8f9; }
+
+  /* ─── SECTION HEADING ─────────────────────────────── */
+  .section-heading {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(59,130,246,.2);
+    margin-bottom: 2px;
+  }
+
+  /* ─── PIPELINE FLOW ───────────────────────────────── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .pipeline-step {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(59,130,246,.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 500;
+    position: relative;
+    min-width: 90px;
+    text-align: center;
+    flex: 1;
+  }
+  .pipeline-step .step-num {
+    font-size: 9px;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .pipeline-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    color: var(--accent);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .pipeline-step.done { border-color: rgba(16,185,129,.4); }
+  .pipeline-step.done .step-num { color: var(--green); }
+  .pipeline-step.next { border-color: rgba(245,158,11,.4); }
+  .pipeline-step.next .step-num { color: var(--gold); }
+
+  /* ─── FEATURE CARD ────────────────────────────────── */
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .feature-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .feature-card.f1::after { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .feature-card.f2::after { background: linear-gradient(90deg, var(--gold), var(--accent)); }
+  .feature-card.f3::after { background: linear-gradient(90deg, var(--green), var(--accent2)); }
+  .feature-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .feature-formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    background: rgba(245,158,11,.08);
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .feature-desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .feature-stat { font-size: 10px; color: var(--green); margin-top: 6px; font-weight: 600; }
+
+  /* ─── PROGRESS BAR ────────────────────────────────── */
+  .progress-row { margin-bottom: 10px; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: rgba(255,255,255,.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  /* ─── IMBALANCE VIZ ───────────────────────────────── */
+  .imbalance-bar {
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    margin: 8px 0;
+  }
+  .imbalance-legit {
+    background: linear-gradient(90deg, rgba(59,130,246,.6), rgba(59,130,246,.4));
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    font-size: 11px;
+    color: var(--white);
+    font-weight: 600;
+  }
+  .imbalance-fraud {
+    background: linear-gradient(90deg, rgba(239,68,68,.8), rgba(239,68,68,.6));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 10px;
+    color: var(--white);
+    font-weight: 700;
+    min-width: 42px;
+  }
+
+  /* ─── TWO-COL ─────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* ─── CARD BOX ────────────────────────────────────── */
+  .card-box {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card-box-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* ─── LIST ────────────────────────────────────────── */
+  .check-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .check-list li {
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .check-list li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    font-size: 11px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .bullet-list li {
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .bullet-list li::before {
+    content: '→';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ─── TITLE SLIDE SPECIAL ─────────────────────────── */
+  .title-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px;
+    position: relative;
+    z-index: 2;
+  }
+  .shield-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 36px;
+    box-shadow: 0 0 40px rgba(59,130,246,.4);
+  }
+  .title-main {
+    font-size: 44px;
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: -1.5px;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 40%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .title-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    max-width: 480px;
+    line-height: 1.5;
+  }
+  .title-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    margin: 20px auto;
+  }
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .team-card {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(59,130,246,.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .team-name { font-size: 12px; font-weight: 700; color: var(--white); }
+  .team-id   { font-size: 10px; color: var(--accent); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+  .meta-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item { font-size: 11px; color: var(--text-dim); text-align: center; }
+  .meta-item strong { display: block; color: var(--text); font-weight: 600; }
+
+  /* ─── GLOW ORBS (decorative) ──────────────────────── */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    opacity: .12;
+  }
+  .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px; }
+  .orb-2 { width: 300px; height: 300px; background: var(--accent2); bottom: -80px; left: -60px; }
+
+  /* ─── PRINT ───────────────────────────────────────── */
+  @media print {
+    body { background: white; padding: 0; gap: 0; }
+    .slide {
+      box-shadow: none;
+      page-break-after: always;
+      border-radius: 0;
+      width: 210mm;
+      min-height: 297mm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="accent-bar"></div>
+
+  <div class="title-hero">
+    <div class="shield-icon">🛡️</div>
+    <div class="title-main">FRAUD SHIELD</div>
+    <div class="title-sub">
+      Explainable &amp; Adaptive Credit Card Fraud<br/>Risk Intelligence System
+    </div>
+    <div class="title-divider"></div>
+
+    <div style="font-size:11px; color:var(--accent); letter-spacing:2px; font-weight:600; text-transform:uppercase; margin-bottom:6px;">
+      Milestone Progress Report — Phases 0 &amp; 1
+    </div>
+    <div style="font-size:12px; color:var(--text-dim);">
+      Implementation of Credit Card Fraud Detection Using Machine Learning Algorithms
+    </div>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-name">Akshat Mehra</div>
+        <div class="team-id">BTAD2401008</div>
+      </div>
+      <div class="team-card">
+        <div class="team-name">Ujjwal Chandravanshi</div>
+        <div class="team-id">BTAD2401070</div>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-item"><strong>Team</strong>Code Masala</div>
+      <div class="meta-item"><strong>Course</strong>AI &amp; Data Science</div>
+      <div class="meta-item"><strong>Coordinator</strong>Asst. Prof. Geetika Hazra</div>
+      <div class="meta-item"><strong>Date</strong>September 9, 2026</div>
+    </div>
+
+    <div style="margin-top:28px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <span class="badge badge-green">Phase 0 — Complete</span>
+      <span class="badge badge-green">Phase 1 — Complete</span>
+      <span class="badge badge-gold">Phase 2 — Next</span>
+      <span class="badge badge-blue">59 / 59 Tests Passing</span>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD</span>
+    <span>Academic Prototype · Not for production deployment</span>
+    <span>Slide 1 / 6</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 2 — SYSTEM OVERVIEW & ARCHITECTURE
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="accent-bar"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">System Design</div>
+    <div class="slide-title">Architecture &amp; Pipeline Overview</div>
+    <div class="slide-subtitle">End-to-end fraud risk intelligence — from raw transaction to actionable decision</div>
+  </div>
+
+  <div class="slide-body">
+
+    <div class="pipeline">
+      <div class="pipeline-step done"><span class="step-num">01 ✓</span>Load &amp; Validate</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step done"><span class="step-num">02 ✓</span>Feature Eng.</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step done"><span class="step-num">03 ✓</span>Preprocess Pipeline</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step next"><span class="step-num">04 →</span>Train 5 Models</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step next"><span class="step-num">05 →</span>Evaluate &amp; Select</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step next"><span class="step-num">06 →</span>Risk + SHAP</div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step next"><span class="step-num">07 →</span>Dashboard</div>
+    </div>
+
+    <div class="two-col" style="margin-top:4px;">
+      <div>
+        <div class="section-heading" style="margin-bottom:10px;">Models Planned</div>
+        <table class="data-table">
+          <tr><th>Model</th><th>Imbalance Strategy</th></tr>
+          <tr><td>Dummy Baseline</td><td class="mono">stratified</td></tr>
+          <tr><td>Logistic Regression</td><td class="mono">class_weight='balanced'</td></tr>
+          <tr><td>Decision Tree</td><td class="mono">class_weight='balanced'</td></tr>
+          <tr><td>Random Forest</td><td class="mono">class_weight='balanced'</td></tr>
+          <tr><td style="color:var(--gold); font-weight:600;">XGBoost</td><td class="mono">scale_pos_weight</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-heading" style="margin-bottom:10px;">Model Selection Criterion</div>
+        <div class="card-box">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent2); margin-bottom:12px; line-height:1.8;">
+            Score =<br/>
+            &nbsp;&nbsp;<span style="color:var(--gold);">0.35</span> × F2-score<br/>
+            &nbsp;+ <span style="color:var(--gold);">0.30</span> × PR-AUC<br/>
+            &nbsp;+ <span style="color:var(--gold);">0.20</span> × ROC-AUC<br/>
+            &nbsp;+ <span style="color:var(--gold);">0.15</span> × F1-score
+          </div>
+          <div style="font-size:11px; color:var(--text-dim);">
+            F2-score is <strong style="color:var(--white);">primary</strong> — recall-weighted, because missing a fraud is costlier than a false alarm.
+          </div>
+        </div>
+
+        <div class="section-heading" style="margin-bottom:10px; margin-top:12px;">Risk Output Format</div>
+        <div class="card-box">
+          <div style="display:flex; gap:8px; flex-direction:column; font-size:11px;">
+            <div style="display:flex; justify-content:space-between;"><span>Score 0–30</span><span class="badge badge-green">LOW — ALLOW</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Score 31–70</span><span class="badge badge-gold">MEDIUM — MONITOR</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Score 71–100</span><span class="badge badge-red">HIGH — REVIEW</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-heading" style="margin-bottom:8px;">Key Engineering Principles</div>
+    <div class="three-col">
+      <div class="card-box">
+        <div class="card-box-title">No Data Leakage</div>
+        <ul class="check-list">
+          <li>Scaler fitted on training data only</li>
+          <li>SMOTE applied after split</li>
+          <li>Threshold tuned on val set</li>
+        </ul>
+      </div>
+      <div class="card-box">
+        <div class="card-box-title">Reproducibility</div>
+        <ul class="check-list">
+          <li>Random state = 42 everywhere</li>
+          <li>Stratified splits</li>
+          <li>Serialized pipeline artifacts</li>
+        </ul>
+      </div>
+      <div class="card-box">
+        <div class="card-box-title">Explainability</div>
+        <ul class="check-list">
+          <li>SHAP per-transaction</li>
+          <li>Top-K feature contributions</li>
+          <li>Correlation, not causation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD</span>
+    <span>Phase 0 &amp; 1 Complete · All numbers verified against real dataset</span>
+    <span>Slide 2 / 6</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 3 — DATASET ANALYSIS
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-2"></div>
+  <div class="accent-bar"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Phase 1 · Dataset Assessment</div>
+    <div class="slide-title">Dataset Analysis — Verified Statistics</div>
+    <div class="slide-subtitle">ULB Kaggle Credit Card Fraud Detection · All numbers obtained from actual dataset inspection</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card accent">
+        <div class="stat-value">284,807</div>
+        <div class="stat-label">Total Transactions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">31</div>
+        <div class="stat-label">Columns</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-value">492</div>
+        <div class="stat-label">Fraud Transactions</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-value">1:577</div>
+        <div class="stat-label">Imbalance Ratio</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-heading" style="margin-bottom:8px;">Class Imbalance — The Core Challenge</div>
+      <div class="imbalance-bar">
+        <div class="imbalance-legit" style="flex:99.8273;">Legitimate — 284,315 &nbsp;(99.827%)</div>
+        <div class="imbalance-fraud" style="flex:.1727;">0.17%</div>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+        A model predicting <em>always legitimate</em> achieves <strong style="color:var(--red);">99.8% accuracy</strong> — making accuracy a meaningless metric.
+        This is why we use <strong style="color:var(--white);">Precision, Recall, F2-score, PR-AUC</strong> instead.
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Amount Distribution</div>
+        <table class="data-table">
+          <tr><th>Statistic</th><th>Value</th></tr>
+          <tr><td>Mean</td><td class="mono">€88.35</td></tr>
+          <tr><td>Median</td><td class="mono">€22.00</td></tr>
+          <tr><td>Maximum</td><td class="mono">€25,691.16</td></tr>
+          <tr><td>Skewness</td><td class="highlight">16.98 ← very high</td></tr>
+          <tr><td>Kurtosis</td><td class="highlight">845.09 ← heavy tail</td></tr>
+          <tr><td>Zero-amount txns</td><td class="mono">1,825</td></tr>
+          <tr><td>Fraud mean Amount</td><td class="green">€122.21</td></tr>
+          <tr><td>Legitimate mean Amount</td><td class="mono">€88.29</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Top Fraud-Correlated Features</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="progress-row">
+            <div class="progress-label"><span>V17</span><span style="color:var(--accent);">0.3265</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span>V14</span><span style="color:var(--accent);">0.3025</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:93%; background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span>V12</span><span style="color:var(--accent);">0.2606</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:80%; background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span>V10</span><span style="color:var(--accent);">0.2169</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:66%; background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span>V16</span><span style="color:var(--accent);">0.1965</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:60%; background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+          </div>
+        </div>
+
+        <div class="section-heading" style="margin-bottom:8px; margin-top:14px;">Data Quality</div>
+        <div class="card-box">
+          <div style="display:flex; flex-direction:column; gap:6px; font-size:12px;">
+            <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);">Missing values</span><span class="badge badge-green">0 — None</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);">Duplicate rows</span><span class="badge badge-gold">1,081 — Dropped</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);">Non-numeric cols</span><span class="badge badge-green">0 — All numeric</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);">Encoding needed</span><span class="badge badge-green">None</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD</span>
+    <span>Source: Kaggle ULB MLG · kaggle.com/datasets/mlg-ulb/creditcardfraud</span>
+    <span>Slide 3 / 6</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 4 — FEATURE ENGINEERING & PIPELINE
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="accent-bar"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Phase 1 · Feature Engineering</div>
+    <div class="slide-title">Feature Engineering &amp; Preprocessing Pipeline</div>
+    <div class="slide-subtitle">3 derived features, leakage-safe sklearn Pipeline, stratified 60/20/20 split</div>
+  </div>
+
+  <div class="slide-body">
+
+    <div class="section-heading">Derived Features — Rationale from Actual Data</div>
+    <div class="feature-grid">
+      <div class="feature-card f1">
+        <div class="feature-name">log_amount</div>
+        <div class="feature-formula">log1p(Amount)</div>
+        <div class="feature-desc">Amount has extreme right skew. Log transform normalises distribution and handles zero-amount transactions safely.</div>
+        <div class="feature-stat">Skewness: 16.98 · Kurtosis: 845.09</div>
+      </div>
+      <div class="feature-card f2">
+        <div class="feature-name">hour_of_day</div>
+        <div class="feature-formula">(Time % 86400) / 3600</div>
+        <div class="feature-desc">Dataset spans exactly 48 hours. Extracts cyclical time-of-day pattern. Fraud occurs earlier on average (80,747s vs 94,838s).</div>
+        <div class="feature-stat">Range: 0.0 – 23.99 hours</div>
+      </div>
+      <div class="feature-card f3">
+        <div class="feature-name">is_night</div>
+        <div class="feature-formula">1 if hour_of_day &lt; 6</div>
+        <div class="feature-desc">Binary flag for low-supervision window. 8.40% of all transactions occur between midnight and 6am (verified: 23,934 transactions).</div>
+        <div class="feature-stat">Night rate verified: 8.40%</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Column Treatment</div>
+        <table class="data-table">
+          <tr><th>Category</th><th>Columns</th><th>Count</th><th>Treatment</th></tr>
+          <tr><td>Scaled</td><td class="mono">Amount, Time,<br/>log_amount, hour_of_day</td><td>4</td><td>StandardScaler</td></tr>
+          <tr><td>Passthrough</td><td class="mono">V1 – V28</td><td>28</td><td>Already PCA-scaled</td></tr>
+          <tr><td>Passthrough</td><td class="mono">is_night</td><td>1</td><td>Binary, no scale</td></tr>
+          <tr style="font-weight:600;"><td colspan="2" style="color:var(--accent);">Total Features Out</td><td style="color:var(--gold);">33</td><td>—</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Scaler Statistics (Training Data Only)</div>
+        <table class="data-table">
+          <tr><th>Feature</th><th>Train Mean</th><th>Train Std</th></tr>
+          <tr><td class="mono">Amount</td><td class="mono">88.1606</td><td class="mono">246.4492</td></tr>
+          <tr><td class="mono">Time</td><td class="mono">94,935.86</td><td class="mono">47,513.34</td></tr>
+          <tr><td class="mono">log_amount</td><td class="mono">3.1545</td><td class="mono">1.6556</td></tr>
+          <tr><td class="mono">hour_of_day</td><td class="mono">14.5393</td><td class="mono">5.8411</td></tr>
+        </table>
+        <div style="font-size:10px; color:var(--text-dim); margin-top:6px;">
+          ⚠ These statistics are learned from <strong style="color:var(--white);">170,235 training rows only</strong>.
+          Validation and test sets are transformed using these parameters — not their own statistics.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-heading" style="margin-bottom:8px;">Data Split (Stratified)</div>
+    <div class="stat-grid" style="gap:10px;">
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:20px; color:var(--accent);">170,235</div>
+        <div class="stat-label">Train rows</div>
+        <div style="font-size:10px; color:var(--green); margin-top:4px;">284 fraud (0.167%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:20px; color:var(--accent2);">56,745</div>
+        <div class="stat-label">Validation rows</div>
+        <div style="font-size:10px; color:var(--green); margin-top:4px;">94 fraud (0.166%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:20px; color:var(--gold);">56,746</div>
+        <div class="stat-label">Test rows (held out)</div>
+        <div style="font-size:10px; color:var(--green); margin-top:4px;">95 fraud (0.167%)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD</span>
+    <span>sklearn Pipeline · ColumnTransformer · StandardScaler · joblib serialization</span>
+    <span>Slide 4 / 6</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 5 — ANTI-LEAKAGE & TEST RESULTS
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-2"></div>
+  <div class="accent-bar"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Phase 1 · Verification</div>
+    <div class="slide-title">Anti-Leakage Proof &amp; Test Results</div>
+    <div class="slide-subtitle">6 leakage prevention guarantees · 59/59 automated tests passing · Inference consistency confirmed</div>
+  </div>
+
+  <div class="slide-body">
+
+    <div class="two-col">
+      <div>
+        <div class="section-heading" style="margin-bottom:10px;">Anti-Leakage Guarantees</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">Scaler fit on training only</div><div style="font-size:11px; color:var(--text-dim);">Pipeline.fit() called on 170,235 training rows. Val/test use the same fitted scaler.</div></div>
+          </div>
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">Zero index overlap (train ∩ test = ∅)</div><div style="font-size:11px; color:var(--text-dim);">Verified at runtime: "Leakage check passed: zero index overlap"</div></div>
+          </div>
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">Duplicates removed before split</div><div style="font-size:11px; color:var(--text-dim);">1,081 duplicates dropped pre-split to prevent identical rows in train and test.</div></div>
+          </div>
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">SMOTE disabled by default</div><div style="font-size:11px; color:var(--text-dim);">If enabled, SMOTE is applied only to training set after split. Config-controlled.</div></div>
+          </div>
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">Threshold tuned on validation set</div><div style="font-size:11px; color:var(--text-dim);">Classification threshold is optimized on val set. Test set reserved for final report only.</div></div>
+          </div>
+          <div class="card-box" style="display:flex; gap:10px; align-items:flex-start; padding:12px;">
+            <span class="badge badge-green" style="margin-top:2px; flex-shrink:0;">✓</span>
+            <div><div style="font-size:12px; color:var(--white); font-weight:600;">Inference consistency: max diff = 0.00e+00</div><div style="font-size:11px; color:var(--text-dim);">Batch transform and single-row inference produce mathematically identical output.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-heading" style="margin-bottom:10px;">Test Suite Results</div>
+        <div class="card-box" style="text-align:center; padding:20px; margin-bottom:12px;">
+          <div style="font-size:52px; font-weight:900; color:var(--green); line-height:1;">59</div>
+          <div style="font-size:14px; color:var(--text-dim); margin-top:2px;">of 59 tests passing</div>
+          <div style="font-size:11px; color:var(--green); margin-top:6px; font-weight:600;">0 failures · 0 errors · 2.36s</div>
+        </div>
+
+        <table class="data-table">
+          <tr><th>Test Group</th><th style="text-align:center;">Tests</th></tr>
+          <tr><td>DataLoader (init, stats, columns)</td><td style="text-align:center;" class="green">11</td></tr>
+          <tr><td>DataValidator (hard checks, report)</td><td style="text-align:center;" class="green">13</td></tr>
+          <tr><td>FeatureEngineer (transform, X/y, single)</td><td style="text-align:center;" class="green">18</td></tr>
+          <tr><td>Pipeline (leakage, output shape)</td><td style="text-align:center;" class="green">10</td></tr>
+          <tr><td>Pipeline (consistency, save/load)</td><td style="text-align:center;" class="green">7</td></tr>
+          <tr style="font-weight:700;"><td style="color:var(--accent);">Total</td><td style="text-align:center; color:var(--green);">59 / 59</td></tr>
+        </table>
+
+        <div style="background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.2); border-radius:8px; padding:12px; margin-top:12px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--green);">
+          ===== test session starts =====<br/>
+          platform win32 · Python 3.13.5<br/>
+          collected 59 items<br/><br/>
+          ...........................<br/>
+          ........................<br/><br/>
+          <strong>59 passed in 2.36s</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD</span>
+    <span>pytest 9.1.1 · Python 3.13.5 · All tests use synthetic fixtures (no real data dependency)</span>
+    <span>Slide 5 / 6</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SLIDE 6 — DELIVERABLES & NEXT STEPS
+════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="accent-bar"></div>
+
+  <div class="slide-header">
+    <div class="slide-label">Summary</div>
+    <div class="slide-title">Deliverables &amp; Next Steps</div>
+    <div class="slide-subtitle">What was built · What was verified · What comes next</div>
+  </div>
+
+  <div class="slide-body">
+
+    <div class="two-col">
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Phase 0 — Completed</div>
+        <ul class="check-list">
+          <li>Full project scaffold (27 directories)</li>
+          <li>All ML packages installed &amp; verified</li>
+          <li>Central config.yaml — single source of truth</li>
+          <li>Logger, serialization utilities</li>
+          <li>README, ARCHITECTURE, SETUP docs</li>
+          <li>Dataset acquired &amp; extracted (143 MB)</li>
+        </ul>
+
+        <div class="section-heading" style="margin-bottom:8px; margin-top:14px;">Phase 1 — Completed</div>
+        <ul class="check-list">
+          <li>DataLoader with schema validation</li>
+          <li>DataValidator with structured report</li>
+          <li>FeatureEngineer — 3 derived features</li>
+          <li>PreprocessingPipeline — leakage-safe</li>
+          <li>Stratified 60/20/20 split</li>
+          <li>Pipeline saved to disk (2,896 bytes)</li>
+          <li>DATA_DICTIONARY.md with real stats</li>
+          <li>59 automated tests — all passing</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="section-heading" style="margin-bottom:8px;">Saved Artifacts</div>
+        <table class="data-table">
+          <tr><th>Artifact</th><th>Status</th></tr>
+          <tr><td class="mono" style="font-size:10px;">preprocessing_pipeline.joblib</td><td><span class="badge badge-green">Saved</span></td></tr>
+          <tr><td class="mono" style="font-size:10px;">preprocessing_metadata.json</td><td><span class="badge badge-green">Saved</span></td></tr>
+          <tr><td class="mono" style="font-size:10px;">data/processed/train.parquet</td><td><span class="badge badge-green">Saved</span></td></tr>
+          <tr><td class="mono" style="font-size:10px;">data/processed/validation.parquet</td><td><span class="badge badge-green">Saved</span></td></tr>
+          <tr><td class="mono" style="font-size:10px;">data/processed/test.parquet</td><td><span class="badge badge-green">Saved</span></td></tr>
+          <tr><td class="mono" style="font-size:10px;">artifacts/models/ (Phase 2)</td><td><span class="badge badge-gold">Pending</span></td></tr>
+        </table>
+
+        <div class="section-heading" style="margin-bottom:8px; margin-top:14px;">Phase 2 — Next</div>
+        <ul class="bullet-list">
+          <li>Train 5 models (LR, DT, RF, XGBoost, Dummy)</li>
+          <li>Evaluate: Precision, Recall, F1, F2, ROC-AUC, PR-AUC</li>
+          <li>Optimize threshold on validation set</li>
+          <li>Select best model via composite score</li>
+          <li>Final evaluation on held-out test set</li>
+          <li>Populate MODEL_EXPERIMENTS.md with real results</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-heading" style="margin-bottom:8px;">Verified Numbers at a Glance</div>
+    <div class="stat-grid stat-grid-4" style="gap:8px;">
+      <div class="stat-card" style="padding:12px;">
+        <div class="stat-value" style="font-size:18px; color:var(--accent);">283,726</div>
+        <div class="stat-label">Rows after dedup</div>
+      </div>
+      <div class="stat-card" style="padding:12px;">
+        <div class="stat-value" style="font-size:18px; color:var(--red);">473</div>
+        <div class="stat-label">Fraud in pipeline</div>
+      </div>
+      <div class="stat-card" style="padding:12px;">
+        <div class="stat-value" style="font-size:18px; color:var(--gold);">33</div>
+        <div class="stat-label">Features out</div>
+      </div>
+      <div class="stat-card" style="padding:12px;">
+        <div class="stat-value" style="font-size:18px; color:var(--green);">59/59</div>
+        <div class="stat-label">Tests passing</div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg, rgba(59,130,246,.1), rgba(6,182,212,.08)); border:1px solid rgba(59,130,246,.2); border-radius:10px; padding:16px; text-align:center;">
+      <div style="font-size:11px; color:var(--accent); font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;">Academic Disclaimer</div>
+      <div style="font-size:11px; color:var(--text-dim); line-height:1.5;">
+        This system is an academic prototype developed for a semester project in Artificial Intelligence &amp; Data Science.<br/>
+        It is NOT suitable for real banking or financial deployment.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span class="logo-text">FRAUD SHIELD v1.0.0</span>
+    <span>Code Masala · Akshat Mehra · Ujjwal Chandravanshi</span>
+    <span>Slide 6 / 6</span>
+  </div>
+</div>
+
+</body>
+</html>

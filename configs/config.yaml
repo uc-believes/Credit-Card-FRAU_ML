@@ -1,0 +1,245 @@
+# =============================================================================
+# FRAUD SHIELD — Central Configuration
+# Explainable & Adaptive Credit Card Fraud Risk Intelligence System
+# =============================================================================
+# IMPORTANT: This is the single source of truth for all configurable values.
+# Do NOT hard-code thresholds, paths, or hyperparameters elsewhere in the code.
+# All paths are relative to the project root unless marked as absolute.
+# =============================================================================
+
+project:
+  name: "Fraud Shield"
+  version: "1.0.0"
+  description: "Explainable Credit Card Fraud Risk Intelligence System"
+  team: "Code Masala"
+  academic_disclaimer: >
+    This is an academic prototype for educational purposes only.
+    It is NOT suitable for real banking or financial deployment.
+
+# -----------------------------------------------------------------------------
+# Paths (relative to project root)
+# -----------------------------------------------------------------------------
+paths:
+  data:
+    raw: "data/raw/creditcard.csv"
+    processed: "data/processed/creditcard_processed.parquet"
+    train: "data/processed/train.parquet"
+    validation: "data/processed/validation.parquet"
+    test: "data/processed/test.parquet"
+  artifacts:
+    models: "artifacts/models"
+    pipelines: "artifacts/pipelines"
+    metrics: "artifacts/metrics"
+    plots: "artifacts/plots"
+    reports: "artifacts/reports"
+  monitoring:
+    log: "artifacts/monitoring_log.jsonl"
+  app:
+    templates: "app/templates"
+    static: "app/static"
+
+# -----------------------------------------------------------------------------
+# Dataset Configuration
+# IMPORTANT: Do NOT change column names without re-inspecting the actual CSV.
+# These reflect the standard ULB Kaggle creditcard dataset schema.
+# They MUST be verified against the actual file in loader.py.
+# -----------------------------------------------------------------------------
+dataset:
+  target_column: "Class"
+  fraud_label: 1
+  legitimate_label: 0
+  # Columns to drop before training (not features, not target)
+  drop_columns: []
+  # Numeric columns requiring scaling
+  scale_columns:
+    - "Amount"
+    - "Time"
+  # PCA-transformed columns — passed through as-is (already scaled by ULB)
+  passthrough_columns: null   # null = auto-detect V1..V28
+  expected_min_rows: 200000   # Sanity check on load
+  expected_columns: 31        # Sanity check
+
+# -----------------------------------------------------------------------------
+# Data Splitting
+# -----------------------------------------------------------------------------
+splitting:
+  test_size: 0.20        # 20% held-out test set (never seen during training)
+  validation_size: 0.20  # 20% of training used for validation
+  # Effective split: 60% train, 20% val, 20% test
+  random_state: 42
+  stratify: true         # Always stratify on target_column
+
+# -----------------------------------------------------------------------------
+# Imbalance Handling
+# Primary strategy: class_weight='balanced' (no leakage risk)
+# Secondary strategy: SMOTE (applied ONLY to training set, after split)
+# -----------------------------------------------------------------------------
+imbalance:
+  primary_strategy: "class_weight"  # Options: class_weight, none
+  secondary_strategy: "smote"       # Options: smote, none
+  use_smote: false                  # Set true to enable SMOTE experiment
+  smote_random_state: 42
+  smote_k_neighbors: 5
+  smote_sampling_strategy: "auto"   # Oversample minority to match majority
+
+# -----------------------------------------------------------------------------
+# Model Hyperparameters
+# -----------------------------------------------------------------------------
+models:
+  logistic_regression:
+    enabled: true
+    name: "Logistic Regression"
+    params:
+      C: 1.0
+      max_iter: 1000
+      random_state: 42
+      solver: "lbfgs"
+      class_weight: "balanced"
+
+  decision_tree:
+    enabled: true
+    name: "Decision Tree"
+    params:
+      max_depth: 10
+      min_samples_split: 10
+      min_samples_leaf: 5
+      random_state: 42
+      class_weight: "balanced"
+
+  random_forest:
+    enabled: true
+    name: "Random Forest"
+    params:
+      n_estimators: 200
+      max_depth: 15
+      min_samples_split: 10
+      min_samples_leaf: 5
+      random_state: 42
+      n_jobs: -1
+      class_weight: "balanced"
+
+  xgboost:
+    enabled: true
+    name: "XGBoost"
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      random_state: 42
+      eval_metric: "aucpr"
+      tree_method: "hist"
+      # scale_pos_weight set automatically from class distribution in trainer.py
+
+  dummy_baseline:
+    enabled: true
+    name: "Dummy Baseline (Stratified)"
+    params:
+      strategy: "stratified"
+      random_state: 42
+
+# -----------------------------------------------------------------------------
+# Model Selection Criterion
+# The best model is selected using a weighted score across multiple metrics.
+# Primary: F2-score (recall-weighted, catches more fraud)
+# Supporting: PR-AUC, ROC-AUC, F1
+# Weights must sum to 1.0
+# -----------------------------------------------------------------------------
+model_selection:
+  # Compute a weighted composite score for model ranking
+  metric_weights:
+    f2_score: 0.35        # Primary: recall-biased fraud detection
+    pr_auc: 0.30          # Precision-Recall area (robust to imbalance)
+    roc_auc: 0.20         # Overall discrimination ability
+    f1_score: 0.15        # Precision-recall balance
+  # Minimum acceptable thresholds (model is disqualified if below these)
+  minimum_thresholds:
+    recall: 0.70          # Must catch at least 70% of fraud cases
+    precision: 0.10       # Must have at least 10% precision (baseline quality)
+    roc_auc: 0.90         # Must demonstrate meaningful discrimination
+
+# -----------------------------------------------------------------------------
+# Threshold Optimization
+# Default threshold is 0.5, but for imbalanced problems we optimize it.
+# -----------------------------------------------------------------------------
+threshold:
+  default: 0.5
+  optimize: true
+  optimization_metric: "f2_score"   # Metric to maximize during threshold search
+  search_range: [0.05, 0.95]
+  search_steps: 100
+
+# -----------------------------------------------------------------------------
+# Risk Engine — Fraud Probability → Risk Category
+# Probability is converted to a 0-100 risk score, then categorized.
+# These thresholds are configurable and must not be hard-coded elsewhere.
+# -----------------------------------------------------------------------------
+risk_engine:
+  # Risk score = round(fraud_probability * 100)
+  thresholds:
+    low_max: 30          # 0-30 = LOW
+    medium_max: 70       # 31-70 = MEDIUM
+    # 71-100 = HIGH
+  categories:
+    low:
+      label: "LOW"
+      color: "#22c55e"
+      decision: "ALLOW"
+      description: "Transaction appears legitimate. No action required."
+    medium:
+      label: "MEDIUM"
+      color: "#f59e0b"
+      decision: "MONITOR"
+      description: "Transaction has elevated risk. Flag for review."
+    high:
+      label: "HIGH"
+      color: "#ef4444"
+      decision: "REVIEW"
+      description: "Transaction is high risk. Requires immediate review."
+
+# -----------------------------------------------------------------------------
+# Explainability (SHAP)
+# -----------------------------------------------------------------------------
+explainability:
+  top_k_features: 10     # Number of top features to return per explanation
+  method: "shap"         # Only SHAP is implemented; extensible
+  disclaimer: >
+    Feature contributions indicate statistical associations learned from
+    historical data. They do NOT imply causation and should not be
+    interpreted as definitive reasons for fraud.
+
+# -----------------------------------------------------------------------------
+# Monitoring
+# -----------------------------------------------------------------------------
+monitoring:
+  max_log_entries: 50000        # Cap on JSONL log size (rotate after this)
+  psi_reference_window: 1000    # Rows used to build reference distribution
+  psi_alert_threshold: 0.20     # PSI > 0.20 triggers drift alert
+  alert_high_fraud_rate: 0.10   # Alert if recent fraud rate exceeds 10%
+
+# -----------------------------------------------------------------------------
+# Flask Application
+# -----------------------------------------------------------------------------
+app:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+  secret_key: "fraud-shield-dev-key-change-in-production"
+  investigation_queue_max: 100  # Maximum entries in investigation queue
+
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+  file: "fraud_shield.log"
+  max_bytes: 10485760   # 10 MB
+  backup_count: 3
+
+# -----------------------------------------------------------------------------
+# Reproducibility
+# -----------------------------------------------------------------------------
+reproducibility:
+  global_random_state: 42

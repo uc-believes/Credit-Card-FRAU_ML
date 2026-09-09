@@ -1,0 +1,71 @@
+# Fraud Shield — .gitignore
+# ===========================
+
+# --- Sensitive Data (NEVER commit raw transaction data) ---
+data/raw/
+data/processed/
+*.csv
+*.parquet
+
+# --- Trained Model Artifacts (large binary files) ---
+artifacts/models/*.joblib
+artifacts/pipelines/*.joblib
+artifacts/monitoring_log.jsonl
+
+# Keep directory structure but not files
+!artifacts/models/.gitkeep
+!artifacts/pipelines/.gitkeep
+!artifacts/metrics/.gitkeep
+!artifacts/plots/.gitkeep
+!artifacts/reports/.gitkeep
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyo
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Jupyter Notebooks Checkpoints ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- IDE ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs ---
+*.log
+fraud_shield.log*
+
+# --- Kaggle Credentials (NEVER commit) ---
+kaggle.json
+.kaggle/
+
+# --- Environment Variables ---
+.env
+.env.*
+!.env.example
+
+# --- Test Coverage ---
+.coverage
+htmlcov/
+.pytest_cache/

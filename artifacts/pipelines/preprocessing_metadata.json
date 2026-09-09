@@ -1,0 +1,157 @@
+{
+  "fitted_at": "2026-09-09T05:51:28.394809+00:00",
+  "total_rows_used": 283726,
+  "n_features_in": 33,
+  "n_features_out": 33,
+  "feature_names_in": [
+    "Time",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount",
+    "log_amount",
+    "hour_of_day",
+    "is_night"
+  ],
+  "feature_names_out": [
+    "Amount",
+    "Time",
+    "log_amount",
+    "hour_of_day",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "is_night"
+  ],
+  "scale_columns": [
+    "Amount",
+    "Time",
+    "log_amount",
+    "hour_of_day"
+  ],
+  "passthrough_columns": [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "is_night"
+  ],
+  "split_config": {
+    "test_size": 0.2,
+    "validation_size": 0.2,
+    "random_state": 42,
+    "stratified": true
+  },
+  "split_sizes": {
+    "train": 170235,
+    "val": 56745,
+    "test": 56746
+  },
+  "class_distribution": {
+    "train": {
+      "fraud": 284,
+      "legitimate": 169951
+    },
+    "val": {
+      "fraud": 94,
+      "legitimate": 56651
+    },
+    "test": {
+      "fraud": 95,
+      "legitimate": 56651
+    }
+  },
+  "scaler_stats": {
+    "Amount": {
+      "mean": 88.16059876053689,
+      "std": 246.4491980857807
+    },
+    "Time": {
+      "mean": 94935.85693306311,
+      "std": 47513.337163273034
+    },
+    "log_amount": {
+      "mean": 3.154527845201874,
+      "std": 1.6556437826923212
+    },
+    "hour_of_day": {
+      "mean": 14.539332891134151,
+      "std": 5.841104037834419
+    }
+  },
+  "pipeline_version": "1.0.0"
+}
