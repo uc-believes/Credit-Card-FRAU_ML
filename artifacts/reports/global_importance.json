@@ -1,0 +1,200 @@
+[
+  {
+    "rank": 1,
+    "feature": "V14",
+    "mean_abs_shap": 2.651415,
+    "importance_share": 0.1598
+  },
+  {
+    "rank": 2,
+    "feature": "V4",
+    "mean_abs_shap": 2.212277,
+    "importance_share": 0.1333
+  },
+  {
+    "rank": 3,
+    "feature": "V3",
+    "mean_abs_shap": 1.071804,
+    "importance_share": 0.0646
+  },
+  {
+    "rank": 4,
+    "feature": "V11",
+    "mean_abs_shap": 0.978698,
+    "importance_share": 0.059
+  },
+  {
+    "rank": 5,
+    "feature": "V12",
+    "mean_abs_shap": 0.883551,
+    "importance_share": 0.0532
+  },
+  {
+    "rank": 6,
+    "feature": "V10",
+    "mean_abs_shap": 0.828777,
+    "importance_share": 0.0499
+  },
+  {
+    "rank": 7,
+    "feature": "V8",
+    "mean_abs_shap": 0.626051,
+    "importance_share": 0.0377
+  },
+  {
+    "rank": 8,
+    "feature": "V15",
+    "mean_abs_shap": 0.542653,
+    "importance_share": 0.0327
+  },
+  {
+    "rank": 9,
+    "feature": "V26",
+    "mean_abs_shap": 0.443782,
+    "importance_share": 0.0267
+  },
+  {
+    "rank": 10,
+    "feature": "V1",
+    "mean_abs_shap": 0.442909,
+    "importance_share": 0.0267
+  },
+  {
+    "rank": 11,
+    "feature": "hour_of_day",
+    "mean_abs_shap": 0.397334,
+    "importance_share": 0.0239
+  },
+  {
+    "rank": 12,
+    "feature": "V20",
+    "mean_abs_shap": 0.375782,
+    "importance_share": 0.0226
+  },
+  {
+    "rank": 13,
+    "feature": "V7",
+    "mean_abs_shap": 0.374727,
+    "importance_share": 0.0226
+  },
+  {
+    "rank": 14,
+    "feature": "V6",
+    "mean_abs_shap": 0.341232,
+    "importance_share": 0.0206
+  },
+  {
+    "rank": 15,
+    "feature": "V24",
+    "mean_abs_shap": 0.339144,
+    "importance_share": 0.0204
+  },
+  {
+    "rank": 16,
+    "feature": "V19",
+    "mean_abs_shap": 0.333546,
+    "importance_share": 0.0201
+  },
+  {
+    "rank": 17,
+    "feature": "Amount",
+    "mean_abs_shap": 0.321994,
+    "importance_share": 0.0194
+  },
+  {
+    "rank": 18,
+    "feature": "V25",
+    "mean_abs_shap": 0.294739,
+    "importance_share": 0.0178
+  },
+  {
+    "rank": 19,
+    "feature": "V27",
+    "mean_abs_shap": 0.277026,
+    "importance_share": 0.0167
+  },
+  {
+    "rank": 20,
+    "feature": "V17",
+    "mean_abs_shap": 0.274648,
+    "importance_share": 0.0166
+  },
+  {
+    "rank": 21,
+    "feature": "V16",
+    "mean_abs_shap": 0.274498,
+    "importance_share": 0.0165
+  },
+  {
+    "rank": 22,
+    "feature": "V18",
+    "mean_abs_shap": 0.26611,
+    "importance_share": 0.016
+  },
+  {
+    "rank": 23,
+    "feature": "V2",
+    "mean_abs_shap": 0.263342,
+    "importance_share": 0.0159
+  },
+  {
+    "rank": 24,
+    "feature": "V28",
+    "mean_abs_shap": 0.241187,
+    "importance_share": 0.0145
+  },
+  {
+    "rank": 25,
+    "feature": "V13",
+    "mean_abs_shap": 0.240293,
+    "importance_share": 0.0145
+  },
+  {
+    "rank": 26,
+    "feature": "V22",
+    "mean_abs_shap": 0.230229,
+    "importance_share": 0.0139
+  },
+  {
+    "rank": 27,
+    "feature": "V5",
+    "mean_abs_shap": 0.215698,
+    "importance_share": 0.013
+  },
+  {
+    "rank": 28,
+    "feature": "Time",
+    "mean_abs_shap": 0.214108,
+    "importance_share": 0.0129
+  },
+  {
+    "rank": 29,
+    "feature": "V23",
+    "mean_abs_shap": 0.21376,
+    "importance_share": 0.0129
+  },
+  {
+    "rank": 30,
+    "feature": "V21",
+    "mean_abs_shap": 0.18545,
+    "importance_share": 0.0112
+  },
+  {
+    "rank": 31,
+    "feature": "V9",
+    "mean_abs_shap": 0.162376,
+    "importance_share": 0.0098
+  },
+  {
+    "rank": 32,
+    "feature": "log_amount",
+    "mean_abs_shap": 0.073562,
+    "importance_share": 0.0044
+  },
+  {
+    "rank": 33,
+    "feature": "is_night",
+    "mean_abs_shap": 0.000651,
+    "importance_share": 0.0
+  }
+]
