@@ -1,0 +1,9 @@
+{
+  "selected_model_key": "xgboost",
+  "display_name": "XGBoost",
+  "optimal_threshold": 0.2772727272727273,
+  "validation_composite_score": 0.8966418285249517,
+  "selection_criterion": "weighted_composite_score",
+  "model_name": "best_model",
+  "saved_at": "2026-09-22T05:44:26.055550+00:00"
+}

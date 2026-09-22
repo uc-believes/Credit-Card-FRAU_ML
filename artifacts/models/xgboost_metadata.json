@@ -1,0 +1,13 @@
+{
+  "model_key": "xgboost",
+  "display_name": "XGBoost",
+  "training_duration_seconds": 3.312,
+  "inference_duration_seconds": 0.015,
+  "optimal_threshold": 0.2772727272727273,
+  "validation_composite_score": 0.8966418285249517,
+  "validation_f2": 0.8709677419354839,
+  "validation_pr_auc": 0.8810996013027895,
+  "validation_roc_auc": 0.9734317660539691,
+  "model_name": "xgboost",
+  "saved_at": "2026-09-22T05:44:25.854590+00:00"
+}

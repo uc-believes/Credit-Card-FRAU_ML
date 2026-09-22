@@ -1,0 +1,13 @@
+{
+  "model_key": "dummy_baseline",
+  "display_name": "Dummy Baseline (Stratified)",
+  "training_duration_seconds": 0.007,
+  "inference_duration_seconds": 0.001,
+  "optimal_threshold": 0.5,
+  "validation_composite_score": 0.10033985782690595,
+  "validation_f2": 0.0,
+  "validation_pr_auc": 0.0016565336152965019,
+  "validation_roc_auc": 0.49921448871158497,
+  "model_name": "dummy_baseline",
+  "saved_at": "2026-09-22T05:44:26.051055+00:00"
+}

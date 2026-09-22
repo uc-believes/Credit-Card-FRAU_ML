@@ -1,0 +1,13 @@
+{
+  "model_key": "decision_tree",
+  "display_name": "Decision Tree",
+  "training_duration_seconds": 3.357,
+  "inference_duration_seconds": 0.005,
+  "optimal_threshold": 0.05,
+  "validation_composite_score": 0.5457538157527829,
+  "validation_f2": 0.484472049689441,
+  "validation_pr_auc": 0.4955359428707918,
+  "validation_roc_auc": 0.9139297084763485,
+  "model_name": "decision_tree",
+  "saved_at": "2026-09-22T05:44:14.727283+00:00"
+}

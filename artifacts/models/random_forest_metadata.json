@@ -1,0 +1,13 @@
+{
+  "model_key": "random_forest",
+  "display_name": "Random Forest",
+  "training_duration_seconds": 7.13,
+  "inference_duration_seconds": 0.072,
+  "optimal_threshold": 0.48636363636363633,
+  "validation_composite_score": 0.8734695845353616,
+  "validation_f2": 0.8580508474576272,
+  "validation_pr_auc": 0.838280556467581,
+  "validation_roc_auc": 0.9688644207140624,
+  "model_name": "random_forest",
+  "saved_at": "2026-09-22T05:44:22.226540+00:00"
+}

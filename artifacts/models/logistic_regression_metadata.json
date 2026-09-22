@@ -1,0 +1,13 @@
+{
+  "model_key": "logistic_regression",
+  "display_name": "Logistic Regression",
+  "training_duration_seconds": 1.031,
+  "inference_duration_seconds": 0.003,
+  "optimal_threshold": 0.95,
+  "validation_composite_score": 0.7397713031035656,
+  "validation_f2": 0.6672025723472669,
+  "validation_pr_auc": 0.7882134488551833,
+  "validation_roc_auc": 0.982755370039101,
+  "model_name": "logistic_regression",
+  "saved_at": "2026-09-22T05:44:10.972153+00:00"
+}
