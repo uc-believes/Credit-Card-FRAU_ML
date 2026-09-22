@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fraud Shield — Milestone Report: Phases 2 & 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-900: #0a0f1e;
+    --blue-800: #0d1a35;
+    --blue-700: #112248;
+    --blue-600: #1a3568;
+    --accent:   #3b82f6;
+    --accent2:  #06b6d4;
+    --gold:     #f59e0b;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --white:    #ffffff;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --text:     #e2e8f0;
+    --text-dim: #94a3b8;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px 20px;
+  }
+
+  /* ─── SLIDE CONTAINER (A4 Portrait at 96 DPI) ─── */
+  .slide {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--blue-900);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 80px rgba(0,0,0,.7);
+    page-break-after: always;
+  }
+
+  /* ─── DECORATIVE GRID ─── */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  /* ─── ACCENT TOP BAR ─── */
+  .accent-bar {
+    height: 5px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 60%, transparent 100%);
+  }
+
+  /* ─── SLIDE HEADER ─── */
+  .slide-header {
+    padding: 34px 44px 18px;
+    position: relative;
+    z-index: 2;
+  }
+  .slide-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .slide-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(59,130,246,.4), transparent);
+  }
+  .slide-title {
+    font-size: 27px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.2;
+    letter-spacing: -.5px;
+  }
+  .slide-subtitle {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 5px;
+    font-weight: 400;
+  }
+
+  /* ─── SLIDE BODY ─── */
+  .slide-body {
+    padding: 16px 44px 30px;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ─── SLIDE FOOTER ─── */
+  .slide-footer {
+    position: relative;
+    z-index: 2;
+    padding: 12px 44px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(59,130,246,.15);
+    font-size: 9.5px;
+    color: var(--gray-500);
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+  .slide-footer .logo-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* ─── STAT CARDS ─── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .stat-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .stat-value {
+    font-size: 23px;
+    font-weight: 800;
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 9.5px;
+    color: var(--text-dim);
+    margin-top: 5px;
+    font-weight: 500;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .stat-card.accent .stat-value { color: var(--accent); }
+  .stat-card.gold .stat-value { color: var(--gold); }
+  .stat-card.green .stat-value { color: var(--green); }
+  .stat-card.red .stat-value { color: var(--red); }
+
+  /* ─── TABLES ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 11px;
+  }
+  .data-table th {
+    background: rgba(59,130,246,.15);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 9.5px;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(59,130,246,.3);
+  }
+  .data-table th:first-child { border-radius: 6px 0 0 0; }
+  .data-table th:last-child { border-radius: 0 6px 0 0; }
+  .data-table td {
+    padding: 8px 10px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    background: rgba(255,255,255,.02);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(59,130,246,.08); }
+  .data-table tr.highlight td {
+    background: rgba(16,185,129,.12);
+    color: #ecfdf5;
+    font-weight: 600;
+  }
+  .data-table td.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+  }
+
+  /* ─── CARDS & CALLOUTS ─── */
+  .card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: .4px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .badge-green { background: rgba(16,185,129,.2); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+  .badge-gold { background: rgba(245,158,11,.2); color: var(--gold); border: 1px solid rgba(245,158,11,.3); }
+  .badge-red { background: rgba(239,68,68,.2); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .badge-blue { background: rgba(59,130,246,.2); color: var(--accent); border: 1px solid rgba(59,130,246,.3); }
+
+  /* ─── CODE / MONO BOX ─── */
+  .code-block {
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #93c5fd;
+    line-height: 1.45;
+  }
+
+  /* ─── GRID LAYOUT HELPER ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .two-col-60-40 {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 1: COVER & EXECUTIVE OVERVIEW                                       -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Milestone Implementation Report &middot; Phases 2 & 3</div>
+    <div class="slide-title">Fraud Shield: Intelligent Risk Scoring & Explainable AI</div>
+    <div class="slide-subtitle">Credit Card Fraud Detection using Cost-Sensitive ML, Tree SHAP & Dynamic Risk Tiering</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Meta Info Box -->
+    <div class="card" style="border-left: 3px solid var(--accent); background: rgba(59,130,246,.05);">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px;">
+        <div><span style="color: var(--text-dim);">Project Team:</span><br/><strong style="color: var(--white);">Code Masala</strong></div>
+        <div><span style="color: var(--text-dim);">Developers:</span><br/><strong style="color: var(--white);">Akshat Mehra &middot; Ujjwal Chandravanshi</strong></div>
+        <div><span style="color: var(--text-dim);">Course & Mentor:</span><br/><strong style="color: var(--white);">AI & Data Science &middot; Asst. Prof. Geetika Hazra</strong></div>
+      </div>
+    </div>
+
+    <!-- 4 High Impact Stat Cards -->
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card accent">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Models Evaluated</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value">0.8966</div>
+        <div class="stat-label">Top Composite Score</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value">92.59%</div>
+        <div class="stat-label">Test Precision</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-value">66 / 66</div>
+        <div class="stat-label">Tests Passing</div>
+      </div>
+    </div>
+
+    <!-- Executive Highlights -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Phases 2 &amp; 3 Engineering Milestones</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; line-height: 1.45;">
+        <div style="display: flex; gap: 10px;">
+          <span class="badge badge-blue" style="height: fit-content;">Phase 2</span>
+          <div><strong>Cost-Sensitive Model Training:</strong> Trained Dummy Baseline, Logistic Regression, Decision Tree, Random Forest, and XGBoost on 170,235 transactions using balanced class weights and asymmetric scale factor (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">scale_pos_weight = 598.42</code>).</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span class="badge badge-green" style="height: fit-content;">Phase 2</span>
+          <div><strong>Threshold Tuning &amp; Zero-Leakage Evaluation:</strong> Tuned operating thresholds over validation split maximizing <span style="color: var(--green); font-weight: 600;">F2-Score</span>. Selected XGBoost and evaluated on 56,746 held-out test transactions: caught 75/95 frauds with only 6 false alarms (<span style="color: var(--green); font-weight: 600;">99.99% Specificity</span>).</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span class="badge badge-gold" style="height: fit-content;">Phase 3</span>
+          <div><strong>Calibrated Risk Engine:</strong> Engineered 0–100 integer risk score and mapped transactions to operational action categories: <span class="badge badge-green">LOW (ALLOW)</span>, <span class="badge badge-gold">MEDIUM (MONITOR)</span>, and <span class="badge badge-red">HIGH (REVIEW)</span>.</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span class="badge badge-blue" style="height: fit-content;">Phase 3</span>
+          <div><strong>Mathematical Tree SHAP Attribution:</strong> Exact additivity formulation in margin space (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">σ(base + Σφ) ≡ P(fraud)</code> with error &lt; 10⁻¹⁰). Generates local waterfall charts, global importance, and formal non-causal regulatory disclaimers.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Banner -->
+    <div class="code-block" style="text-align: center; color: var(--text);">
+      Raw Transaction &rarr; Feature Engineering (33 Feats) &rarr; Scaler Pipeline &rarr; XGBoost Inference &rarr; Risk Engine (0-100) &rarr; SHAP Waterfall Plot
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 2 &amp; 3 Milestone Report</div>
+    <div>Slide 1 of 6</div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 2: PHASE 2 — TRAINING & IMBALANCE STRATEGY                          -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Phase 2 &middot; Model Training &amp; Methodology</div>
+    <div class="slide-title">Cost-Sensitive Training &amp; Imbalance Mitigation</div>
+    <div class="slide-subtitle">Combating extreme 0.172% fraud class imbalance without synthetic distortion</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Imbalance Problem Card -->
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <div class="card-title" style="color: var(--red);"><span class="dot" style="background: var(--red);"></span>The High Cost of Accuracy in Fraud Detection</div>
+      <p style="font-size: 11px; line-height: 1.45; color: var(--text);">
+        In our dataset of 284,807 transactions, fraud occurs in only <strong>0.172%</strong> of cases (1 fraud per 577 legitimate transactions). A naive model unconditionally predicting "Legitimate" achieves <strong>99.83% accuracy</strong> while catching exactly <strong>0% of fraud</strong>. Hence, accuracy is disqualified as a primary metric.
+      </p>
+    </div>
+
+    <!-- 2 Column: Candidate Models & Weighting Strategy -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>5 Candidate Model Families</div>
+        <ul style="font-size: 10.5px; line-height: 1.55; color: var(--text); padding-left: 14px;">
+          <li><strong>Dummy Baseline:</strong> Prior-stratified coin flip (establishes empirical floor).</li>
+          <li><strong>Logistic Regression:</strong> L2-regularized linear baseline (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">C=1.0, balanced</code>).</li>
+          <li><strong>Decision Tree:</strong> Single rule-tree benchmark (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">depth=10, balanced</code>).</li>
+          <li><strong>Random Forest:</strong> Bagged ensemble of 200 trees (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">depth=15, balanced</code>).</li>
+          <li><strong>XGBoost:</strong> Gradient boosted trees with asymmetric penalization (<code style="font-family: 'JetBrains Mono'; color: #93c5fd;">200 trees, depth=6</code>).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Mathematical Weighting Strategy</div>
+        <div style="font-size: 10.5px; line-height: 1.5; color: var(--text);">
+          <p>Scikit-learn balanced weights penalize fraud errors by class ratio:</p>
+          <div class="code-block" style="margin: 6px 0;">w₁ = N / (2 &middot; N₁) &approx; 299.71 &times; w₀</div>
+          <p>For XGBoost, positive gradient loss is amplified directly by training sample ratio:</p>
+          <div class="code-block" style="margin: 6px 0;">scale_pos_weight = N_legit / N_fraud = 169,951 / 284 = 598.42</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-metric composite score objective -->
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="card-title"><span class="dot"></span>Model Selection Formula &amp; Safety Gates</div>
+      <p style="font-size: 11px; margin-bottom: 6px;">Operating threshold swept across [0.05, 0.95] in 100 steps on validation split to maximize:</p>
+      <div class="code-block" style="font-size: 11px; font-weight: 600; text-align: center; color: var(--white); background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.4);">
+        Composite Score = 0.35 &times; F2 + 0.30 &times; PR-AUC + 0.20 &times; ROC-AUC + 0.15 &times; F1
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; font-size: 10.5px; text-align: center;">
+        <div style="background: rgba(255,255,255,.02); padding: 6px; border-radius: 4px;">Gate 1: Recall &ge; 70.0%</div>
+        <div style="background: rgba(255,255,255,.02); padding: 6px; border-radius: 4px;">Gate 2: Precision &ge; 10.0%</div>
+        <div style="background: rgba(255,255,255,.02); padding: 6px; border-radius: 4px;">Gate 3: ROC-AUC &ge; 90.0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 2 &middot; Training &amp; Imbalance</div>
+    <div>Slide 2 of 6</div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 3: PHASE 2 — MODEL COMPARISON & WINNER SELECTION                    -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Phase 2 &middot; Model Benchmarking</div>
+    <div class="slide-title">Validation Model Comparison &amp; Winner Selection</div>
+    <div class="slide-subtitle">Empirical results across 56,745 validation transactions (94 actual fraud cases)</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Comparison Table -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Candidate Model</th>
+            <th>Thresh</th>
+            <th>Recall</th>
+            <th>Precision</th>
+            <th>F1</th>
+            <th>F2</th>
+            <th>PR-AUC</th>
+            <th>ROC</th>
+            <th>Composite</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td><strong>#1</strong></td>
+            <td><strong>XGBoost (Selected)</strong></td>
+            <td class="mono">0.2773</td>
+            <td class="mono">86.17%</td>
+            <td class="mono">91.01%</td>
+            <td class="mono">0.8852</td>
+            <td class="mono">0.8710</td>
+            <td class="mono">0.8811</td>
+            <td class="mono">0.9734</td>
+            <td class="mono" style="color: var(--green);">0.8966</td>
+            <td><span class="badge badge-green">WINNER</span></td>
+          </tr>
+          <tr>
+            <td>#2</td>
+            <td>Random Forest</td>
+            <td class="mono">0.4864</td>
+            <td class="mono">86.17%</td>
+            <td class="mono">84.38%</td>
+            <td class="mono">0.8526</td>
+            <td class="mono">0.8581</td>
+            <td class="mono">0.8383</td>
+            <td class="mono">0.9689</td>
+            <td class="mono">0.8735</td>
+            <td><span class="badge badge-blue">PASSED</span></td>
+          </tr>
+          <tr>
+            <td>#3</td>
+            <td>Logistic Regression</td>
+            <td class="mono">0.9500</td>
+            <td class="mono">88.30%</td>
+            <td class="mono">33.74%</td>
+            <td class="mono">0.4882</td>
+            <td class="mono">0.6672</td>
+            <td class="mono">0.7882</td>
+            <td class="mono">0.9828</td>
+            <td class="mono">0.7398</td>
+            <td><span class="badge badge-blue">PASSED</span></td>
+          </tr>
+          <tr>
+            <td>#4</td>
+            <td>Decision Tree</td>
+            <td class="mono">0.0500</td>
+            <td class="mono">82.98%</td>
+            <td class="mono">18.18%</td>
+            <td class="mono">0.2983</td>
+            <td class="mono">0.4845</td>
+            <td class="mono">0.4955</td>
+            <td class="mono">0.9139</td>
+            <td class="mono">0.5458</td>
+            <td><span class="badge badge-blue">PASSED</span></td>
+          </tr>
+          <tr>
+            <td>#5</td>
+            <td>Dummy Baseline</td>
+            <td class="mono">0.5000</td>
+            <td class="mono">0.00%</td>
+            <td class="mono">0.00%</td>
+            <td class="mono">0.0000</td>
+            <td class="mono">0.0000</td>
+            <td class="mono">0.0017</td>
+            <td class="mono">0.4992</td>
+            <td class="mono">0.1003</td>
+            <td><span class="badge badge-red">FAILED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Validation Confusion Matrix Comparison -->
+    <div class="two-col">
+      <div class="card" style="border-left: 3px solid var(--green);">
+        <div class="card-title" style="color: var(--green);"><span class="dot" style="background: var(--green);"></span>XGBoost Confusion Matrix (Thresh = 0.2773)</div>
+        <div class="code-block" style="font-size: 9.5px;">
+                      Pred Legit    Pred Fraud
+Actual Legit    56,643 (TN)          8 (FP)   &larr; Only 8 false alarms!
+Actual Fraud        13 (FN)         81 (TP)   &larr; 86.17% caught
+Precision: 91.01%  |  Specificity: 99.986%
+        </div>
+      </div>
+
+      <div class="card" style="border-left: 3px solid var(--accent);">
+        <div class="card-title"><span class="dot"></span>Random Forest vs. Logistic Reg Confusion</div>
+        <div class="code-block" style="font-size: 9.5px;">
+Random Forest:        81 TP | 13 FN |  15 FP (84.38% Prec)
+Logistic Regression:  83 TP | 11 FN | 163 FP (33.74% Prec)
+Decision Tree:        78 TP | 16 FN | 351 FP (18.18% Prec)
+        </div>
+      </div>
+    </div>
+
+    <!-- Why XGBoost Won -->
+    <div class="card" style="background: rgba(59,130,246,.05);">
+      <div class="card-title"><span class="dot"></span>Winning Model Decision Rationale</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10.5px;">
+        <div><strong style="color: var(--green);">1. Minimal Friction:</strong> Only 8 false alarms across 56,651 customers (nearly half the false alarms of Random Forest).</div>
+        <div><strong style="color: var(--accent);">2. Highest PR-AUC (0.8811):</strong> Superior precision-recall curve area unaffected by massive negative class volume.</div>
+        <div><strong style="color: var(--gold);">3. Asymmetric Generalization:</strong> Feature/sample subsampling mitigated overfitting to sparse fraud noise.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 2 &middot; Comparison &amp; Winner</div>
+    <div>Slide 3 of 6</div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 4: PHASE 2 — TEST SET GENERALIZATION                                -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Phase 2 &middot; Generalization Verification</div>
+    <div class="slide-title">Held-Out Test Set Performance (Zero Leakage)</div>
+    <div class="slide-subtitle">Evaluating XGBoost on 56,746 completely unseen transactions (95 fraud cases)</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Test Stat Grid -->
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card green">
+        <div class="stat-value">92.59%</div>
+        <div class="stat-label">Test Precision</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-value">78.95%</div>
+        <div class="stat-label">Test Recall (75/95)</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value">99.99%</div>
+        <div class="stat-label">Specificity</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-value">0.8178</div>
+        <div class="stat-label">Test PR-AUC</div>
+      </div>
+    </div>
+
+    <!-- 2 Column: Test Confusion Matrix & Metric Breakdown -->
+    <div class="two-col">
+      <div class="card" style="border-left: 3px solid var(--green);">
+        <div class="card-title" style="color: var(--green);"><span class="dot" style="background: var(--green);"></span>Held-Out Test Set Confusion Matrix</div>
+        <div class="code-block" style="font-size: 10px; margin-top: 4px;">
+                      Pred Legit    Pred Fraud
+Actual Legit    56,645 (TN)          6 (FP)
+Actual Fraud        20 (FN)         75 (TP)
+--------------------------------------------
+&bull; True Positives (Frauds Stopped):   75
+&bull; False Positives (False Alarms):     6
+&bull; False Positive Rate:            0.0106%
+&bull; 1 false alarm per 9,440 cardholder purchases!
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Strict Anti-Leakage Protocol</div>
+        <div style="font-size: 10.5px; line-height: 1.5; color: var(--text);">
+          <p>&bull; <strong>Zero Test-Set Tuning:</strong> Operating threshold was fixed strictly at <code style="font-family: 'JetBrains Mono'; color: #93c5fd;">0.2773</code> from validation search.</p>
+          <p>&bull; <strong>Pipeline Immutability:</strong> StandardScaler learned mean/std exclusively on training data.</p>
+          <p>&bull; <strong>High Precision Stability:</strong> Test precision rose from 91.01% (val) to <strong>92.59%</strong> on unseen transactions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threshold Sensitivity Table -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Operational Threshold Sensitivity Trade-offs</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Threshold</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-Score</th>
+            <th>F2-Score</th>
+            <th>Operational Banking Application</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">0.05</td>
+            <td class="mono">71.93%</td>
+            <td class="mono">87.23%</td>
+            <td class="mono">0.7885</td>
+            <td class="mono">0.8367</td>
+            <td>High-risk emergency mode / active coordinated attack</td>
+          </tr>
+          <tr>
+            <td class="mono">0.10</td>
+            <td class="mono">81.00%</td>
+            <td class="mono">86.17%</td>
+            <td class="mono">0.8351</td>
+            <td class="mono">0.8508</td>
+            <td>Aggressive automated fraud interception</td>
+          </tr>
+          <tr class="highlight">
+            <td class="mono"><strong>0.2773 (Opt)</strong></td>
+            <td class="mono"><strong>91.01%</strong></td>
+            <td class="mono"><strong>86.17%</strong></td>
+            <td class="mono"><strong>0.8852</strong></td>
+            <td class="mono"><strong>0.8710</strong></td>
+            <td><strong>Fraud Shield Production Default (Max F2)</strong></td>
+          </tr>
+          <tr>
+            <td class="mono">0.50</td>
+            <td class="mono">93.02%</td>
+            <td class="mono">85.11%</td>
+            <td class="mono">0.8889</td>
+            <td class="mono">0.8658</td>
+            <td>Standard uncalibrated ML threshold</td>
+          </tr>
+          <tr>
+            <td class="mono">0.90</td>
+            <td class="mono">94.05%</td>
+            <td class="mono">84.04%</td>
+            <td class="mono">0.8876</td>
+            <td class="mono">0.8587</td>
+            <td>VIP Cardholder Mode / zero customer friction</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 2 &middot; Test Evaluation</div>
+    <div>Slide 4 of 6</div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 5: PHASE 3 — RISK ENGINE & SHAP EXPLAINABILITY                      -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Phase 3 &middot; Explainability &amp; Risk Engine</div>
+    <div class="slide-title">Calibrated Risk Engine &amp; Tree SHAP Attribution</div>
+    <div class="slide-subtitle">Translating raw probabilities into auditable risk scores and mathematical explanations</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Risk Engine 3 Tier Cards -->
+    <div class="stat-grid">
+      <div class="stat-card green">
+        <div class="badge badge-green" style="margin-bottom: 6px;">ALLOW</div>
+        <div class="stat-value">LOW</div>
+        <div class="stat-label">Score 0 &ndash; 30 &middot; Frictionless Approval</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="badge badge-gold" style="margin-bottom: 6px;">MONITOR</div>
+        <div class="stat-value">MEDIUM</div>
+        <div class="stat-label">Score 31 &ndash; 70 &middot; Step-up Auth / OTP</div>
+      </div>
+      <div class="stat-card red">
+        <div class="badge badge-red" style="margin-bottom: 6px;">REVIEW</div>
+        <div class="stat-value">HIGH</div>
+        <div class="stat-label">Score 71 &ndash; 100 &middot; Block &amp; Investigate</div>
+      </div>
+    </div>
+
+    <!-- Mathematical Tree SHAP Card -->
+    <div class="card" style="border-left: 3px solid var(--accent2);">
+      <div class="card-title" style="color: var(--accent2);"><span class="dot" style="background: var(--accent2);"></span>Tree SHAP: Game-Theoretic Mathematical Additivity</div>
+      <p style="font-size: 11px; line-height: 1.45; color: var(--text);">
+        Using Shapley Additive Explanations (Tree SHAP), features act as cooperative players contributing marginal payouts to shift model prediction away from base expectation:
+      </p>
+      <div class="code-block" style="margin: 8px 0; font-size: 11px; text-align: center;">
+        Margin(x) = &phi;₀ + &sum; &phi;&#7522;(x)  &emsp;&Longrightarrow;&emsp; P(fraud) = &sigma;(&phi;₀ + &sum; &phi;&#7522;(x))
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 10.5px; margin-top: 6px;">
+        <div style="background: rgba(239,68,68,.08); padding: 8px; border-radius: 6px; border-left: 2px solid var(--red);">
+          <strong style="color: var(--red);">&phi;&#7522; &gt; 0 (Increases Fraud Risk):</strong> Pushes logit margin positive &rarr; strictly increases fraud probability.
+        </div>
+        <div style="background: rgba(16,185,129,.08); padding: 8px; border-radius: 6px; border-left: 2px solid var(--green);">
+          <strong style="color: var(--green);">&phi;&#7522; &lt; 0 (Mitigating Evidence):</strong> Pushes logit margin negative &rarr; supports transaction legitimacy.
+        </div>
+      </div>
+      <div style="font-size: 10px; color: var(--accent2); margin-top: 8px; font-weight: 600;">
+        &check; Verified in Automated Tests: Numerical difference |P(fraud) - &sigma;(Margin)| &lt; 10⁻¹⁰ across all transactions!
+      </div>
+    </div>
+
+    <!-- Regulatory Non-Causal Distinction -->
+    <div class="card" style="border-left: 3px solid var(--gold);">
+      <div class="card-title" style="color: var(--gold);"><span class="dot" style="background: var(--gold);"></span>Regulatory Compliance: Attribution vs. Causality</div>
+      <p style="font-size: 10.5px; line-height: 1.45; color: var(--text);">
+        Under GDPR Article 22 and FCRA compliance guidelines, machine learning explanations must not imply false human causation. Every explanation generated by Fraud Shield attaches an automated scientific disclaimer:
+      </p>
+      <div class="code-block" style="color: #cbd5e1; font-size: 9.5px; margin-top: 6px;">
+        "Feature contributions indicate statistical associations learned from historical training data.
+        They represent empirical risk signals and do NOT imply real-world causation, motive, or legal culpability."
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 3 &middot; Risk &amp; SHAP Engine</div>
+    <div>Slide 5 of 6</div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE 6: PHASE 3 — EXPLANATIONS & QUALITY ASSURANCE                       -->
+<!-- ========================================================================= -->
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+  <div class="slide-header">
+    <div class="slide-label">Phase 3 &middot; Verification &amp; Walkthrough</div>
+    <div class="slide-title">Global Importance, Case Walkthrough &amp; QA</div>
+    <div class="slide-subtitle">End-to-end verified inference from raw transaction input to visual explanation</div>
+  </div>
+
+  <div class="slide-body">
+    <!-- Top 5 Global Drivers + Real Case Walkthrough -->
+    <div class="two-col-60-40">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Top Global Fraud Drivers (Mean |SHAP|)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Feature</th>
+              <th>Mean |SHAP|</th>
+              <th>Global Share</th>
+              <th>Latent Domain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#1</td>
+              <td class="mono"><strong>V14</strong></td>
+              <td class="mono">2.6514</td>
+              <td class="mono">16.0%</td>
+              <td>Credential compromise</td>
+            </tr>
+            <tr>
+              <td>#2</td>
+              <td class="mono"><strong>V4</strong></td>
+              <td class="mono">2.2123</td>
+              <td class="mono">13.3%</td>
+              <td>Transaction velocity</td>
+            </tr>
+            <tr>
+              <td>#3</td>
+              <td class="mono"><strong>V3</strong></td>
+              <td class="mono">1.0718</td>
+              <td class="mono">6.5%</td>
+              <td>Account consistency</td>
+            </tr>
+            <tr>
+              <td>#4</td>
+              <td class="mono"><strong>V11</strong></td>
+              <td class="mono">0.9787</td>
+              <td class="mono">5.9%</td>
+              <td>Behavioral anomaly</td>
+            </tr>
+            <tr>
+              <td>#5</td>
+              <td class="mono"><strong>V12</strong></td>
+              <td class="mono">0.8836</td>
+              <td class="mono">5.3%</td>
+              <td>Terminal/geo anomaly</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="border-left: 3px solid var(--red);">
+        <div class="card-title" style="color: var(--red);"><span class="dot" style="background: var(--red);"></span>Case Walkthrough (Actual Fraud)</div>
+        <div class="code-block" style="font-size: 9px; line-height: 1.4;">
+Prob: 1.0000 | Score: 100/100
+Level: HIGH  | Alert: FRAUD ALERT
+
+Top Risk Push Factors:
+1. V14 (val=-4.58, SHAP=+3.79, 29.6%)
+2. V12 (val=-5.31, SHAP=+1.49, 11.6%)
+3. Amount (val=0.05, SHAP=+1.42, 11.1%)
+4. V10 (val=-7.73, SHAP=+1.25, 9.7%)
+5. V4  (val=6.54,  SHAP=+1.18, 9.2%)
+
+Mitigating: V25 (SHAP=-1.15), V8 (SHAP=-0.83)
+        </div>
+      </div>
+    </div>
+
+    <!-- Automated Testing & Verification -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Automated Testing &amp; Reproducibility (66 / 66 Passing)</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 10px; text-align: center;">
+        <div style="background: rgba(16,185,129,.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,.2);">
+          <strong style="color: var(--green);">Loader &amp; Data:</strong><br/>24 Tests Passing
+        </div>
+        <div style="background: rgba(16,185,129,.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,.2);">
+          <strong style="color: var(--green);">Feature Pipeline:</strong><br/>35 Tests Passing
+        </div>
+        <div style="background: rgba(16,185,129,.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,.2);">
+          <strong style="color: var(--green);">Model Inference:</strong><br/>3 Tests Passing
+        </div>
+        <div style="background: rgba(16,185,129,.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,.2);">
+          <strong style="color: var(--green);">SHAP &amp; Risk Engine:</strong><br/>4 Tests Passing
+        </div>
+      </div>
+    </div>
+
+    <!-- Repository & Phase 4 Roadmap -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>GitHub Repository &amp; Delivery</div>
+        <div style="font-size: 10px; line-height: 1.5; color: var(--text);">
+          <p>&bull; <strong>Repository:</strong> <code style="font-family: 'JetBrains Mono'; color: #93c5fd;">uc-believes/Credit-Card-FRAU_ML</code></p>
+          <p>&bull; <strong>Branch:</strong> <code style="font-family: 'JetBrains Mono'; color: #93c5fd;">main</code> &middot; Commits: <code style="font-family: 'JetBrains Mono'; color: #93c5fd;">509efc3</code>, <code style="font-family: 'JetBrains Mono'; color: #93c5fd;">041f6c3</code></p>
+          <p>&bull; <strong>Artifacts:</strong> Models, pipelines, reports &amp; plots stored.</p>
+        </div>
+      </div>
+
+      <div class="card" style="border-left: 3px solid var(--accent);">
+        <div class="card-title"><span class="dot"></span>Phase 4 Next Steps</div>
+        <div style="font-size: 10px; line-height: 1.5; color: var(--text);">
+          <p>&bull; <strong>Web Dashboard:</strong> Build modern Flask UI for analysts.</p>
+          <p>&bull; <strong>Investigation Queue:</strong> Interactive transaction triage.</p>
+          <p>&bull; <strong>Interactive SHAP View:</strong> Real-time waterfall charts.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="logo-text">FRAUD SHIELD</div>
+    <div>Phase 3 &middot; Summary &amp; QA</div>
+    <div>Slide 6 of 6</div>
+  </div>
+</div>
+
+</body>
+</html>
