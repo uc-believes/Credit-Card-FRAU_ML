@@ -20,6 +20,7 @@ function initApp() {
   loadPerformanceData();
   loadExplainabilityData();
   loadMonitoringData();
+  loadAdaptiveData();
 
   // Periodic telemetry refresh every 20 seconds
   setInterval(() => {
@@ -75,9 +76,14 @@ function switchTab(tabId, updateHash = true) {
     performance: "Model Performance & Benchmarks",
     explainability: "Explainability & Feature Attribution (SHAP)",
     monitoring: "Model Monitoring & Drift Telemetry",
+    adaptive: "Adaptive Intelligence & What-If Simulation",
   };
   const titleEl = document.getElementById("active-tab-title");
   if (titleEl) titleEl.textContent = titles[tabId] || "Dashboard";
+
+  if (tabId === "adaptive") {
+    loadAdaptiveData();
+  }
 
   if (updateHash) {
     window.location.hash = `#${tabId}`;
@@ -327,7 +333,7 @@ async function loadQueueData() {
     if (!tbody) return;
 
     if (json.items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">No transactions match filter.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 30px; color: var(--text-muted);">No transactions match filter.</td></tr>`;
       return;
     }
 
@@ -335,12 +341,15 @@ async function loadQueueData() {
     json.items.forEach((item) => {
       const scoreBadge = item.risk_score >= 71 ? "badge-high" : item.risk_score >= 31 ? "badge-medium" : "badge-low";
       const statusClass = item.status === "CONFIRMED_FRAUD" ? "badge-high" : item.status === "DISMISSED_FALSE_ALARM" ? "badge-low" : "badge-medium";
+      const priorityTier = item.priority_tier || (item.risk_score >= 71 ? "P1 - CRITICAL" : item.risk_score >= 31 ? "P2 - HIGH" : "P3 - MEDIUM");
+      const priorityClass = item.badge_class || (item.risk_score >= 71 ? "priority-p1" : item.risk_score >= 31 ? "priority-p2" : "priority-p3");
 
       rowsHtml += `
         <tr>
           <td class="mono"><strong>${item.id}</strong></td>
           <td style="color: var(--text-dim); font-size: 11px;">${item.timestamp}</td>
           <td class="mono">$${parseFloat(item.amount).toFixed(2)}</td>
+          <td><span class="badge-priority ${priorityClass}">${priorityTier}</span></td>
           <td><span class="badge ${scoreBadge}">${item.risk_score}/100</span></td>
           <td><span style="font-size: 11px; font-weight: 600;">${item.risk_category}</span></td>
           <td class="mono">${parseFloat(item.probability).toFixed(4)}</td>
@@ -668,3 +677,332 @@ function renderClassDoughnutChart(t) {
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// SECTION 7: Adaptive Intelligence & What-If Simulation
+// ---------------------------------------------------------------------------
+let adaptiveTradeoffData = null;
+
+async function loadAdaptiveData() {
+  try {
+    // 1. Fetch What-If Trade-Off Data
+    const tradeoffRes = await fetch("/api/adaptive/what-if");
+    const tradeoffJson = await tradeoffRes.json();
+    if (tradeoffJson.status === "success") {
+      adaptiveTradeoffData = tradeoffJson;
+      renderDemoTable(tradeoffJson.demonstration_table || []);
+      renderCostCurveChart(tradeoffJson.curve_grid || [], tradeoffJson.cost_optimal_threshold);
+
+      // Update active threshold badge and slider
+      const activeT = tradeoffJson.active_threshold || 0.2773;
+      const activeBadge = document.getElementById("adaptive-active-badge");
+      if (activeBadge) activeBadge.textContent = `ACTIVE THRESHOLD: ${activeT.toFixed(4)}`;
+
+      const slider = document.getElementById("adaptive-threshold-slider");
+      if (slider && !slider.dataset.userInteracted) {
+        slider.value = activeT;
+        onThresholdSliderChange(activeT);
+      }
+    }
+
+    // 2. Fetch Multi-Feature Data Drift
+    const driftRes = await fetch("/api/adaptive/drift");
+    const driftJson = await driftRes.json();
+    if (driftJson.status === "success") {
+      renderMultiDriftTable(driftJson.features || []);
+      const statusBadge = document.getElementById("multi-drift-status-badge");
+      if (statusBadge) {
+        statusBadge.textContent = `DRIFT STATUS: ${driftJson.overall_drift_status}`;
+        statusBadge.className = driftJson.overall_drift_status === "STABLE" ? "badge badge-low" : "badge badge-high";
+      }
+    }
+
+    // 3. Fetch Risk Distribution & Quantiles
+    const distRes = await fetch("/api/adaptive/risk-distribution");
+    const distJson = await distRes.json();
+    if (distJson.status === "success") {
+      renderRiskDistributionChart(distJson.histogram);
+
+      // Update quantiles
+      const q = distJson.quantiles || {};
+      if (document.getElementById("q-p10")) document.getElementById("q-p10").textContent = q.p10 ?? 0;
+      if (document.getElementById("q-p50")) document.getElementById("q-p50").textContent = q.p50 ?? 1;
+      if (document.getElementById("q-p90")) document.getElementById("q-p90").textContent = q.p90 ?? 14;
+      if (document.getElementById("q-p999")) document.getElementById("q-p999").textContent = q.p99_9 ?? 96;
+
+      // Update category percentages
+      const cat = distJson.category_summary || {};
+      if (cat.low_risk && document.getElementById("cat-low-pct")) {
+        document.getElementById("cat-low-pct").textContent = `${cat.low_risk.pct}% (${cat.low_risk.count.toLocaleString()})`;
+      }
+      if (cat.medium_risk && document.getElementById("cat-med-pct")) {
+        document.getElementById("cat-med-pct").textContent = `${cat.medium_risk.pct}% (${cat.medium_risk.count.toLocaleString()})`;
+      }
+      if (cat.high_risk && document.getElementById("cat-high-pct")) {
+        document.getElementById("cat-high-pct").textContent = `${cat.high_risk.pct}% (${cat.high_risk.count.toLocaleString()})`;
+      }
+    }
+  } catch (err) {
+    console.error("Adaptive data loading error:", err);
+  }
+}
+
+function onThresholdSliderChange(val) {
+  const t = parseFloat(val);
+  const display = document.getElementById("slider-threshold-display");
+  if (display) display.textContent = t.toFixed(4);
+
+  const slider = document.getElementById("adaptive-threshold-slider");
+  if (slider) slider.dataset.userInteracted = "true";
+
+  if (!adaptiveTradeoffData || !adaptiveTradeoffData.curve_grid) return;
+
+  // Find closest threshold in evaluated curve grid
+  const grid = adaptiveTradeoffData.curve_grid;
+  const closest = grid.reduce((prev, curr) => {
+    return Math.abs(curr.threshold - t) < Math.abs(prev.threshold - t) ? curr : prev;
+  });
+
+  if (closest) {
+    const recEl = document.getElementById("sim-recall");
+    if (recEl) recEl.textContent = `${closest.recall.toFixed(2)}%`;
+
+    const precEl = document.getElementById("sim-precision");
+    if (precEl) precEl.textContent = `${closest.precision.toFixed(2)}%`;
+
+    const tpEl = document.getElementById("sim-tp");
+    if (tpEl) tpEl.textContent = `${closest.tp} Fraud Caught / ${closest.tp + closest.fn} Total`;
+
+    const fpEl = document.getElementById("sim-fp");
+    if (fpEl) fpEl.textContent = `${closest.fp} False Alarms (Analyst Queue)`;
+
+    const fcEl = document.getElementById("sim-fraud-caught");
+    if (fcEl) fcEl.textContent = `$${closest.fraud_caught_dollars.toLocaleString()}`;
+
+    const feEl = document.getElementById("sim-fraud-escaped");
+    if (feEl) feEl.textContent = `$${closest.fraud_escaped_dollars.toLocaleString()} Escaped Loss`;
+
+    const tcEl = document.getElementById("sim-total-cost");
+    if (tcEl) tcEl.textContent = `$${closest.net_financial_cost.toLocaleString()}`;
+
+    const cbEl = document.getElementById("sim-cost-breakdown");
+    if (cbEl) cbEl.textContent = `$${closest.alert_review_cost} Review + $${closest.fraud_escaped_dollars} Fraud Loss`;
+  }
+}
+
+async function applySimulatedThreshold() {
+  const slider = document.getElementById("adaptive-threshold-slider");
+  if (!slider) return;
+
+  const targetT = parseFloat(slider.value);
+  try {
+    const res = await fetch("/api/threshold/set", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ threshold: targetT }),
+    });
+    const json = await res.json();
+    if (json.status === "success") {
+      alert(`Success! Operating Decision Threshold updated to ${targetT.toFixed(4)}. Live evaluations and queue policies now use this boundary.`);
+      
+      // Update topbar badge
+      const topbarPill = document.getElementById("active-model-pill");
+      if (topbarPill) topbarPill.textContent = `XGBoost · Threshold ${targetT.toFixed(4)}`;
+
+      // Update adaptive active badge
+      const activeBadge = document.getElementById("adaptive-active-badge");
+      if (activeBadge) activeBadge.textContent = `ACTIVE THRESHOLD: ${targetT.toFixed(4)}`;
+
+      loadAdaptiveData();
+      loadOverviewData();
+      loadQueueData();
+    } else {
+      alert(`Error updating threshold: ${json.message}`);
+    }
+  } catch (err) {
+    alert(`Failed to set threshold: ${err.message}`);
+  }
+}
+
+function resetToOptimalThreshold() {
+  const slider = document.getElementById("adaptive-threshold-slider");
+  if (slider) {
+    slider.value = 0.2773;
+    slider.dataset.userInteracted = "true";
+    onThresholdSliderChange(0.2773);
+    applySimulatedThreshold();
+  }
+}
+
+function renderCostCurveChart(grid, optimalT) {
+  const ctx = document.getElementById("chart-cost-curve")?.getContext("2d");
+  if (!ctx || !grid || grid.length === 0) return;
+
+  if (charts.costCurve) charts.costCurve.destroy();
+
+  const labels = grid.map((pt) => pt.threshold.toFixed(2));
+  const totalCost = grid.map((pt) => pt.net_financial_cost);
+  const fraudLoss = grid.map((pt) => pt.fraud_escaped_dollars);
+  const reviewCost = grid.map((pt) => pt.alert_review_cost);
+
+  charts.costCurve = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Total Net Cost ($)",
+          data: totalCost,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderWidth: 2.5,
+          tension: 0.3,
+          fill: true,
+        },
+        {
+          label: "Escaped Fraud Loss ($)",
+          data: fraudLoss,
+          borderColor: "#ef4444",
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0.3,
+        },
+        {
+          label: "Analyst Review Cost ($)",
+          data: reviewCost,
+          borderColor: "#f59e0b",
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0.3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { color: "#e2e8f0", font: { family: "Inter", size: 10 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Decision Threshold (T)", color: "#94a3b8", font: { size: 10 } },
+          ticks: { color: "#64748b", font: { size: 9 } },
+          grid: { display: false },
+        },
+        y: {
+          title: { display: true, text: "Cost in USD ($)", color: "#94a3b8", font: { size: 10 } },
+          ticks: { color: "#64748b", font: { size: 9 } },
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+        },
+      },
+    },
+  });
+}
+
+function renderDemoTable(rows) {
+  const tbody = document.getElementById("demo-tradeoff-body");
+  if (!tbody || !rows || rows.length === 0) return;
+
+  let html = "";
+  rows.forEach((r) => {
+    const isOptimal = Math.abs(r.threshold - 0.2773) < 1e-4;
+    const highlightStyle = isOptimal ? "background: rgba(59,130,246,0.1); font-weight: 700;" : "";
+    const badgeClass = isOptimal ? "badge-low" : r.threshold <= 0.1 ? "badge-high" : "badge-medium";
+
+    html += `
+      <tr style="${highlightStyle}">
+        <td class="mono"><strong>${r.threshold.toFixed(4)}</strong></td>
+        <td class="mono" style="color: var(--primary);">${r.recall.toFixed(2)}%</td>
+        <td class="mono" style="color: var(--green-low);">${r.precision.toFixed(2)}%</td>
+        <td class="mono">${r.fp}</td>
+        <td class="mono">$${r.net_financial_cost.toLocaleString()}</td>
+        <td><span class="badge ${badgeClass}">${r.badge || r.policy_name}</span></td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function renderMultiDriftTable(features) {
+  const tbody = document.getElementById("multi-drift-table-body");
+  if (!tbody || !features || features.length === 0) return;
+
+  let html = "";
+  features.forEach((f) => {
+    const badgeClass = f.status === "STABLE" ? "badge-low" : f.status === "MODERATE" ? "badge-med" : "badge-high";
+
+    html += `
+      <tr>
+        <td class="mono" style="color: var(--cyan-accent);"><strong>${f.feature}</strong></td>
+        <td class="mono">${f.ref_mean}</td>
+        <td class="mono">${f.stream_mean}</td>
+        <td class="mono">${f.ref_std}</td>
+        <td class="mono">${f.stream_std}</td>
+        <td class="mono">${f.ks_statistic}</td>
+        <td class="mono">${f.wasserstein_distance}</td>
+        <td class="mono" style="font-weight: 700; color: ${f.color};">${f.psi_score.toFixed(4)}</td>
+        <td><span class="badge ${badgeClass}">${f.status}</span></td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function renderRiskDistributionChart(hist) {
+  const ctx = document.getElementById("chart-risk-distribution")?.getContext("2d");
+  if (!ctx || !hist || !hist.labels) return;
+
+  if (charts.riskDist) charts.riskDist.destroy();
+
+  charts.riskDist = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: hist.labels,
+      datasets: [
+        {
+          label: "Transaction Count",
+          data: hist.counts,
+          backgroundColor: hist.labels.map((_, i) => {
+            if (i <= 3) return "#10b981"; // 0-30 Low Risk
+            if (i <= 7) return "#f59e0b"; // 31-70 Medium Risk
+            return "#ef4444"; // 71-100 High Risk
+          }),
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.parsed.y.toLocaleString()} transactions (${hist.percentages[ctx.dataIndex]}%)`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: "#64748b", font: { size: 9 } },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { color: "#64748b", font: { size: 9 } },
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+        },
+      },
+    },
+  });
+}
+

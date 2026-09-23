@@ -240,3 +240,17 @@ class FraudIntelligenceService:
             "plot_base64": plot_b64,
             "explanation_object": explanation,
         }
+
+    def set_decision_threshold(self, new_threshold: float) -> float:
+        """
+        Dynamically update the decision threshold across the risk engine.
+
+        Args:
+            new_threshold: New decision threshold in [0.0, 1.0].
+
+        Returns:
+            The newly active decision threshold.
+        """
+        active_t = self.risk_engine.set_decision_threshold(new_threshold)
+        self.operating_threshold = active_t
+        return active_t

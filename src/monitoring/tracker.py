@@ -137,6 +137,14 @@ class TransactionTracker:
                 # Run live prediction
                 res = service.predict_and_explain(raw_dict, top_k=3)
 
+                from src.monitoring.adaptive import AdaptiveIntelligenceEngine
+
+                p_info = AdaptiveIntelligenceEngine.calculate_priority(
+                    risk_score=res["risk_score"],
+                    amount=float(raw_dict.get("Amount", 0.0)),
+                    is_flagged=res["is_flagged"],
+                )
+
                 queue_item = {
                     "id": f"TX-{1000 + i}",
                     "timestamp": datetime.now(timezone.utc).strftime(
@@ -151,6 +159,10 @@ class TransactionTracker:
                     "status_label": res["status_label"],
                     "is_flagged": res["is_flagged"],
                     "status": "PENDING_REVIEW",
+                    "priority_score": p_info["priority_score"],
+                    "priority_tier": p_info["priority_tier"],
+                    "badge_class": p_info["badge_class"],
+                    "sla": p_info["sla"],
                     "top_driver": (
                         res["top_contributing_factors"][0]["feature_name"]
                         if res["top_contributing_factors"]
@@ -213,6 +225,14 @@ class TransactionTracker:
 
         # Add to investigation queue if flagged
         if save_to_queue and record.get("is_flagged", False):
+            from src.monitoring.adaptive import AdaptiveIntelligenceEngine
+
+            p_info = AdaptiveIntelligenceEngine.calculate_priority(
+                risk_score=record.get("risk_score", 0),
+                amount=float(record.get("amount", 0.0)),
+                is_flagged=True,
+            )
+
             queue_item = {
                 "id": record.get("id", f"TX-{1000 + len(self.queue) + 1}"),
                 "timestamp": record.get(
@@ -229,6 +249,10 @@ class TransactionTracker:
                 ),
                 "is_flagged": True,
                 "status": "PENDING_REVIEW",
+                "priority_score": p_info["priority_score"],
+                "priority_tier": p_info["priority_tier"],
+                "badge_class": p_info["badge_class"],
+                "sla": p_info["sla"],
                 "top_driver": record.get("top_driver", "V14"),
                 "top_factors": record.get("top_contributing_factors", []),
                 "mitigating_factors": record.get("mitigating_factors", []),

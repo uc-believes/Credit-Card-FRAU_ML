@@ -50,6 +50,10 @@
           <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
           Model Monitoring
         </a>
+        <a class="nav-item" data-tab="adaptive" id="nav-adaptive">
+          <svg viewBox="0 0 24 24"><path d="M12 3v2a7 7 0 0 1 7 7h2a9 9 0 0 0-9-9zm0 4v2a3 3 0 0 1 3 3h2a5 5 0 0 0-5-5zm-9 5a9 9 0 0 0 9 9v-2a7 7 0 0 1-7-7H3zm4 0a5 5 0 0 0 5 5v-2a3 3 0 0 1-3-3H7z"/></svg>
+          Adaptive &amp; What-If
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -326,8 +330,9 @@
 
               <div style="display: flex; gap: 10px; align-items: center;">
                 <label class="form-label" style="margin: 0;">Sort By:</label>
-                <select class="form-control" id="queue-sort-by" style="width: 160px;" onchange="loadQueueData()">
-                  <option value="risk_score" selected>Risk Score</option>
+                <select class="form-control" id="queue-sort-by" style="width: 175px;" onchange="loadQueueData()">
+                  <option value="priority_score" selected>Priority (Exposure)</option>
+                  <option value="risk_score">Risk Score</option>
                   <option value="amount">Amount</option>
                   <option value="probability">Probability</option>
                   <option value="timestamp">Timestamp</option>
@@ -346,6 +351,7 @@
                     <th>Tx ID</th>
                     <th>Timestamp</th>
                     <th>Amount ($)</th>
+                    <th>Priority</th>
                     <th>Risk Score</th>
                     <th>Category</th>
                     <th>Probability</th>
@@ -676,6 +682,238 @@
                 <strong>XGBoost v1.0.0</strong><br/>
                 <span style="font-size: 10px; color: var(--text-muted);">Last Trained: Phase 2 Run</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 7: ADAPTIVE INTELLIGENCE & WHAT-IF SIMULATOR
+             =================================================================== -->
+        <section class="tab-pane" id="tab-adaptive">
+          <div class="section-header">
+            <h2>Adaptive Fraud Intelligence &amp; Decision Optimization</h2>
+            <p>Interactive threshold sensitivity simulator, financial loss trade-off curves, multi-feature data drift, and risk distributions.</p>
+          </div>
+
+          <!-- Threshold Trade-Off Simulation Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>Interactive "What-If" Decision Threshold Simulator</div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="badge badge-low" id="adaptive-active-badge">ACTIVE THRESHOLD: 0.2773</span>
+                <button class="btn btn-secondary btn-sm" onclick="resetToOptimalThreshold()">Reset to Optimal</button>
+              </div>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 20px;">
+              Adjust the decision threshold slider below to observe the fundamental trade-off between catching more fraudulent dollars (<strong>Recall</strong>) 
+              and generating secondary operational friction on legitimate cardholders (<strong>False Positives / Precision</strong>). Fraud detection is a <em>decision optimization problem</em>.
+            </p>
+
+            <!-- Slider Control Container -->
+            <div style="background: rgba(255,255,255,0.02); padding: 18px 24px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <label style="font-weight: 600; font-size: 13px; color: var(--text-bright);">
+                  Simulated Operating Decision Threshold ($T$):
+                </label>
+                <span style="font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--primary);" id="slider-threshold-display">
+                  0.2773
+                </span>
+              </div>
+
+              <input type="range" id="adaptive-threshold-slider" min="0.01" max="0.95" step="0.01" value="0.2773" 
+                     style="width: 100%; cursor: pointer;" oninput="onThresholdSliderChange(this.value)" />
+
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 6px;">
+                <span>0.01 (Maximum Defense)</span>
+                <span>0.2773 (Production Default)</span>
+                <span>0.50 (Standard ML)</span>
+                <span>0.95 (Minimal Friction)</span>
+              </div>
+            </div>
+
+            <!-- Simulated Metrics Grid -->
+            <div class="grid-4" style="margin-bottom: 20px;">
+              <div class="kpi-card" style="border-left: 3px solid var(--primary);">
+                <span class="kpi-label">Simulated Recall</span>
+                <span class="kpi-value" id="sim-recall" style="color: var(--primary);">86.17%</span>
+                <span class="kpi-meta" id="sim-tp">81 Fraud Caught / 94 Total</span>
+              </div>
+              <div class="kpi-card" style="border-left: 3px solid var(--green-low);">
+                <span class="kpi-label">Simulated Precision</span>
+                <span class="kpi-value" id="sim-precision" style="color: var(--green-low);">91.01%</span>
+                <span class="kpi-meta" id="sim-fp">8 False Alarms (Analyst Queue)</span>
+              </div>
+              <div class="kpi-card" style="border-left: 3px solid var(--amber-med);">
+                <span class="kpi-label">Fraud Dollars Intercepted</span>
+                <span class="kpi-value" id="sim-fraud-caught" style="color: var(--amber-med);">$12,495</span>
+                <span class="kpi-meta" id="sim-fraud-escaped">$2,005 Escaped Fraud</span>
+              </div>
+              <div class="kpi-card" style="border-left: 3px solid var(--red-high);">
+                <span class="kpi-label">Total Operational Cost</span>
+                <span class="kpi-value" id="sim-total-cost" style="color: var(--red-high);">$2,125</span>
+                <span class="kpi-meta" id="sim-cost-breakdown">$120 Review + $2,005 Fraud Loss</span>
+              </div>
+            </div>
+
+            <!-- Action CTA: Apply to Live System -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.06); padding: 14px 20px; border-radius: var(--radius-sm); border: 1px solid rgba(59,130,246,0.2);">
+              <div style="font-size: 12px; color: var(--text-dim);">
+                <strong style="color: var(--text-bright);">Operational Deployment:</strong> Push this simulated threshold to the active inference engine. 
+                All subsequent transaction evaluations and queue flags will instantly reflect this decision boundary.
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-apply-threshold" onclick="applySimulatedThreshold()">
+                Apply Threshold to Live System
+              </button>
+            </div>
+          </div>
+
+          <!-- Two Column Layout: Cost Curve & Demonstration Matrix -->
+          <div class="grid-2" style="margin-bottom: 24px;">
+            <!-- Cost Function Curve Chart -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Financial Loss &amp; Review Cost Optimization Curve</div>
+                <span class="badge badge-low" id="optimal-badge">MIN LOSS: T = 0.2773</span>
+              </div>
+              <div style="height: 280px; position: relative;">
+                <canvas id="chart-cost-curve"></canvas>
+              </div>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">
+                Total Cost = Uncaught Fraud Loss ($) + ($15 &times; False Alarms). The U-shaped curve demonstrates the mathematical minimum loss point.
+              </p>
+            </div>
+
+            <!-- Demonstration Table Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Threshold Trade-Off Demonstration Matrix</div>
+                <span class="badge badge-med">EMPIRICAL VALIDATION</span>
+              </div>
+              <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                <table class="data-table" id="demo-tradeoff-table">
+                  <thead>
+                    <tr>
+                      <th>Threshold</th>
+                      <th>Recall</th>
+                      <th>Precision</th>
+                      <th>False Alerts</th>
+                      <th>Total Cost ($)</th>
+                      <th>Policy Stance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="demo-tradeoff-body">
+                    <!-- Populated dynamically via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Feature Data Drift Table -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>Multi-Feature Covariate Data Drift Telemetry</div>
+              <span class="badge badge-low" id="multi-drift-status-badge">DRIFT STATUS: STABLE</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="multi-drift-table">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Ref Mean</th>
+                    <th>Stream Mean</th>
+                    <th>Ref Std</th>
+                    <th>Stream Std</th>
+                    <th>KS-Statistic</th>
+                    <th>Wasserstein Dist</th>
+                    <th>PSI Score</th>
+                    <th>Drift Status</th>
+                  </tr>
+                </thead>
+                <tbody id="multi-drift-table-body">
+                  <!-- Populated dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Transaction Risk Score Distribution & Quantiles -->
+          <div class="grid-2" style="margin-bottom: 24px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Empirical Risk Score Distribution (0–100)</div>
+                <span class="badge badge-low">DECILE BREAKDOWN</span>
+              </div>
+              <div style="height: 240px; position: relative;">
+                <canvas id="chart-risk-distribution"></canvas>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Risk Score Percentiles &amp; Exposure Tiers</div>
+                <span class="badge badge-med">QUANTILE PROFILE</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;" id="quantile-pills-container">
+                <div class="info-pill" style="flex-direction: column; align-items: flex-start; padding: 10px;">
+                  <span style="font-size: 10px; color: var(--text-dim);">p10:</span>
+                  <strong style="font-size: 16px; color: var(--text-bright);" id="q-p10">0</strong>
+                </div>
+                <div class="info-pill" style="flex-direction: column; align-items: flex-start; padding: 10px;">
+                  <span style="font-size: 10px; color: var(--text-dim);">p50 (Median):</span>
+                  <strong style="font-size: 16px; color: var(--green-low);" id="q-p50">1</strong>
+                </div>
+                <div class="info-pill" style="flex-direction: column; align-items: flex-start; padding: 10px;">
+                  <span style="font-size: 10px; color: var(--text-dim);">p90:</span>
+                  <strong style="font-size: 16px; color: var(--amber-med);" id="q-p90">14</strong>
+                </div>
+                <div class="info-pill" style="flex-direction: column; align-items: flex-start; padding: 10px;">
+                  <span style="font-size: 10px; color: var(--text-dim);">p99.9 (Extreme):</span>
+                  <strong style="font-size: 16px; color: var(--red-high);" id="q-p999">96</strong>
+                </div>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.02); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 11px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <span style="color: var(--text-dim);">Low Risk (0–30):</span>
+                  <strong id="cat-low-pct" style="color: var(--green-low);">98.84% (56,302)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <span style="color: var(--text-dim);">Medium Risk (31–70):</span>
+                  <strong id="cat-med-pct" style="color: var(--amber-med);">0.98% (558)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-dim);">High Risk (71–100):</span>
+                  <strong id="cat-high-pct" style="color: var(--red-high);">0.18% (101)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behavioral Velocity Architecture Blueprint Banner -->
+          <div class="card" style="background: rgba(14, 23, 38, 0.7); border: 1px solid rgba(59, 130, 246, 0.2);">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="dot" style="background: var(--primary);"></span>
+                Entity-Level Behavioral Velocity Feature Store — Enterprise Extension Blueprint
+              </div>
+              <span class="badge badge-med">GOVERNANCE &amp; ROADMAP</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px;">
+              <strong>Dataset Reality Check:</strong> The Kaggle Credit Card Fraud dataset contains anonymized PCA projections 
+              (<code>V1</code>–<code>V28</code>) and lacks entity identifiers (cardholder PAN, customer ID, device fingerprint, or merchant ID). 
+              In strict accordance with enterprise data ethics, <strong>Fraud Shield refuses to fabricate fictitious card IDs</strong>.
+            </p>
+            <p style="font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 14px;">
+              For live core banking implementations or entity-rich benchmarks (e.g. <strong>IEEE-CIS Fraud Detection</strong>, <strong>IBM Card Transactions</strong>), 
+              the production architecture integrates an online feature store (Redis / Feast) to ingest real-time sliding-window aggregations:
+              <code>card_tx_count_10m</code>, <code>amount_ratio_to_30d_mean</code>, <code>impossible_travel_speed_kmh</code>, and <code>inter_transaction_interval_sec</code>.
+            </p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span style="font-size: 11px; color: var(--primary);">
+                &rarr; Detailed architectural specification available in <code>docs/ADAPTIVE_INTELLIGENCE_AND_VELOCITY_EXTENSIONS.md</code>
+              </span>
             </div>
           </div>
         </section>

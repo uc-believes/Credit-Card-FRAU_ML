@@ -383,3 +383,33 @@ class RiskEngine:
             List of RiskAssessment objects.
         """
         return [self.evaluate(p, threshold=threshold) for p in probabilities]
+
+    def set_decision_threshold(self, new_threshold: float) -> float:
+        """
+        Dynamically update the operating decision threshold at runtime.
+
+        Args:
+            new_threshold: New decision threshold in [0.0, 1.0].
+
+        Returns:
+            The newly active decision threshold.
+        """
+        try:
+            val = float(new_threshold)
+        except (TypeError, ValueError) as err:
+            raise TypeError(
+                f"Threshold must be numeric, got {type(new_threshold)}: {new_threshold}"
+            ) from err
+
+        if not (0.0 <= val <= 1.0):
+            raise ValueError(
+                f"Invalid decision_threshold: {val} must lie within [0.0, 1.0]."
+            )
+
+        old_t = self.decision_threshold
+        self.decision_threshold = val
+        self.operating_threshold = val
+        logger.info(
+            "Operating decision threshold updated from %.4f to %.4f", old_t, val
+        )
+        return self.decision_threshold

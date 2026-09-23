@@ -17,6 +17,7 @@ import pandas as pd
 from flask import Blueprint, jsonify, request
 
 from src.explainability.service import FraudIntelligenceService
+from src.monitoring.adaptive import AdaptiveIntelligenceEngine
 from src.monitoring.tracker import TransactionTracker
 from src.utils.config import get_config, get_project_root
 from src.utils.logger import get_logger
@@ -166,13 +167,26 @@ def get_queue():
     Supports filtering by status and sorting.
     """
     tracker = TransactionTracker.get_instance()
-    items = list(tracker.queue)
+    items = []
+    for raw_item in tracker.queue:
+        item = dict(raw_item)
+        if "priority_score" not in item:
+            p_info = AdaptiveIntelligenceEngine.calculate_priority(
+                risk_score=item.get("risk_score", 0),
+                amount=float(item.get("amount", 0.0)),
+                is_flagged=item.get("is_flagged", True),
+            )
+            item["priority_score"] = p_info["priority_score"]
+            item["priority_tier"] = p_info["priority_tier"]
+            item["badge_class"] = p_info["badge_class"]
+            item["sla"] = p_info["sla"]
+        items.append(item)
 
     status_filter = request.args.get("status")
     if status_filter:
         items = [i for i in items if i.get("status") == status_filter]
 
-    sort_by = request.args.get("sort", "risk_score")
+    sort_by = request.args.get("sort", "priority_score")
     desc = request.args.get("order", "desc") == "desc"
 
     try:
@@ -432,3 +446,95 @@ def get_sample_transactions():
         "status": "success",
         "presets": presets,
     })
+
+
+@api_bp.route("/threshold/set", methods=["POST"])
+def update_decision_threshold():
+    """
+    Dynamically update the live operating decision threshold in memory.
+    """
+    payload = request.get_json(force=True) or {}
+    new_t = payload.get("threshold")
+
+    if new_t is None:
+        return jsonify({"status": "error", "message": "Threshold parameter required."}), 400
+
+    try:
+        val = float(new_t)
+        if not (0.0 <= val <= 1.0):
+            raise ValueError("Threshold must be between 0.0 and 1.0.")
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+    service = get_service()
+    updated_t = service.set_decision_threshold(val)
+
+    # Also inform AdaptiveIntelligenceEngine
+    adaptive = AdaptiveIntelligenceEngine.get_instance()
+    adaptive.operating_threshold = updated_t
+
+    return jsonify({
+        "status": "success",
+        "message": f"Operating decision threshold updated to {updated_t:.4f}",
+        "new_threshold": round(updated_t, 4),
+    })
+
+
+@api_bp.route("/adaptive/what-if", methods=["GET"])
+def get_what_if_analysis():
+    """
+    What-if threshold trade-off analysis across Recall, Precision, False Alarms, and Financial Costs.
+    Demonstrates that fraud detection is an optimization problem.
+    """
+    cost_review = float(request.args.get("cost_review", 15.0))
+    fraud_mult = float(request.args.get("fraud_mult", 1.0))
+
+    adaptive = AdaptiveIntelligenceEngine.get_instance()
+    results = adaptive.compute_threshold_tradeoffs(
+        cost_per_false_alert=cost_review,
+        fraud_multiplier=fraud_mult,
+    )
+    return jsonify(results)
+
+
+@api_bp.route("/adaptive/simulate", methods=["POST"])
+def simulate_custom_tradeoffs():
+    """
+    Simulate threshold trade-offs with custom cost and grid parameters.
+    """
+    payload = request.get_json(force=True) or {}
+    cost_review = float(payload.get("cost_per_false_alert", 15.0))
+    fraud_mult = float(payload.get("fraud_multiplier", 1.0))
+    custom_grid = payload.get("threshold_grid")
+
+    adaptive = AdaptiveIntelligenceEngine.get_instance()
+    results = adaptive.compute_threshold_tradeoffs(
+        cost_per_false_alert=cost_review,
+        fraud_multiplier=fraud_mult,
+        threshold_grid=custom_grid,
+    )
+    return jsonify(results)
+
+
+@api_bp.route("/adaptive/drift", methods=["GET"])
+def get_adaptive_drift():
+    """
+    Multi-feature covariate data drift telemetry (PSI, KS-statistic, Wasserstein distance).
+    """
+    tracker = TransactionTracker.get_instance()
+    adaptive = AdaptiveIntelligenceEngine.get_instance()
+    recent = tracker.transactions[-250:] if tracker.transactions else []
+    drift_data = adaptive.compute_feature_drift(recent)
+    return jsonify(drift_data)
+
+
+@api_bp.route("/adaptive/risk-distribution", methods=["GET"])
+def get_adaptive_risk_distribution():
+    """
+    Empirical risk score distribution (0-100), CDF curve, and percentiles.
+    """
+    tracker = TransactionTracker.get_instance()
+    adaptive = AdaptiveIntelligenceEngine.get_instance()
+    scores = [t.get("risk_score", 0) for t in tracker.transactions] if tracker.transactions else None
+    dist_data = adaptive.compute_risk_distribution(scores)
+    return jsonify(dist_data)
