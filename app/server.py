@@ -33,9 +33,19 @@ def create_app() -> Flask:
         static_folder=str(root / "app" / "static"),
         template_folder=str(root / "app" / "templates"),
     )
-    app.config["SECRET_KEY"] = cfg.get("app", {}).get(
+    import os
+    env_secret = os.environ.get("SECRET_KEY")
+    app.config["SECRET_KEY"] = env_secret or cfg.get("app", {}).get(
         "secret_key", "fraud-shield-institutional-secret"
     )
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
 
     # Register API blueprint
     app.register_blueprint(api_bp)

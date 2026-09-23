@@ -7,9 +7,12 @@ Fully connected to the real trained model, pipeline, and SHAP explainer.
 
 from __future__ import annotations
 
+import html
 import json
+import math
 import pathlib
 import time
+import uuid
 from typing import Any
 
 import numpy as np
@@ -95,18 +98,49 @@ def predict_transaction():
     except Exception:
         data = {}
 
-    if not data:
-        return jsonify({"status": "error", "message": "No transaction data provided."}), 400
+    if not isinstance(data, dict) or not data:
+        return jsonify({"status": "error", "message": "Invalid request body: Expected non-empty JSON object."}), 400
+
+    # Validate Amount
+    if "Amount" not in data:
+        return jsonify({"status": "error", "message": "Missing required field: 'Amount'."}), 400
+    try:
+        amt = float(data["Amount"])
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": f"Invalid 'Amount': must be numeric, got '{data['Amount']}'."}), 400
+
+    if math.isnan(amt) or math.isinf(amt):
+        return jsonify({"status": "error", "message": "Invalid 'Amount': must be a finite number. NaN and Infinity values are prohibited."}), 400
+    if amt < 0.0:
+        return jsonify({"status": "error", "message": f"Invalid 'Amount': must be non-negative. Negative values ({amt}) are not permitted."}), 400
+    if amt > 10_000_000.0:
+        return jsonify({"status": "error", "message": "Invalid 'Amount': exceeds maximum transaction cap of $10,000,000."}), 400
+
+    # Validate Time
+    raw_time = data.get("Time", 0.0)
+    try:
+        tm = float(raw_time)
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": f"Invalid 'Time': must be numeric, got '{raw_time}'."}), 400
+
+    if math.isnan(tm) or math.isinf(tm) or tm < 0.0:
+        return jsonify({"status": "error", "message": "Invalid 'Time': must be a non-negative finite number."}), 400
+
+    # Clean and validate PCA components V1 to V28
+    cleaned_input = {"Amount": amt, "Time": tm}
+    for i in range(1, 29):
+        v_key = f"V{i}"
+        raw_val = data.get(v_key, 0.0)
+        try:
+            val = float(raw_val)
+        except (ValueError, TypeError):
+            return jsonify({"status": "error", "message": f"Invalid '{v_key}': must be numeric, got '{raw_val}'."}), 400
+        if math.isnan(val) or math.isinf(val):
+            return jsonify({"status": "error", "message": f"Invalid '{v_key}': must be a finite number. NaN and Infinity values are prohibited."}), 400
+        cleaned_input[v_key] = val
 
     service = get_service()
     tracker = TransactionTracker.get_instance()
-
-    # Clean input: ensure float conversion
-    cleaned_input = {}
-    cleaned_input["Amount"] = float(data.get("Amount", 50.0))
-    cleaned_input["Time"] = float(data.get("Time", 100.0))
-    for i in range(1, 29):
-        cleaned_input[f"V{i}"] = float(data.get(f"V{i}", 0.0))
 
     start_time = time.time()
     # Live inference and SHAP attribution
@@ -117,9 +151,12 @@ def predict_transaction():
     )
     inference_ms = round((time.time() - start_time) * 1000, 2)
 
+    # Collision-safe transaction ID
+    tx_unique_id = f"TX-{uuid.uuid4().hex[:8].upper()}"
+
     # Record into tracker
     record_item = {
-        "id": f"TX-{int(time.time() * 1000) % 100000}",
+        "id": tx_unique_id,
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "amount": cleaned_input["Amount"],
         "time": cleaned_input["Time"],
@@ -207,9 +244,22 @@ def update_queue_action(queue_id: str):
     """
     Investigator action triage (CONFIRMED_FRAUD, DISMISSED_FALSE_ALARM, ESCALATED_TIER_2, PENDING_REVIEW).
     """
+    ALLOWED_STATUSES = {
+        "PENDING_REVIEW",
+        "CONFIRMED_FRAUD",
+        "DISMISSED_FALSE_ALARM",
+        "ESCALATED_TIER_2",
+    }
     payload = request.get_json(force=True) or {}
-    new_status = payload.get("status", "CONFIRMED_FRAUD")
-    notes = payload.get("notes", "")
+    new_status = str(payload.get("status", "CONFIRMED_FRAUD")).strip().upper()
+    if new_status not in ALLOWED_STATUSES:
+        return jsonify({
+            "status": "error",
+            "message": f"Invalid status '{new_status}'. Must be one of: {sorted(list(ALLOWED_STATUSES))}",
+        }), 400
+
+    raw_notes = str(payload.get("notes", ""))[:1000]
+    notes = html.escape(raw_notes)
 
     tracker = TransactionTracker.get_instance()
     updated = tracker.update_queue_status(queue_id, new_status, notes)

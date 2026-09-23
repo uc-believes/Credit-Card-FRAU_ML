@@ -77,7 +77,10 @@
         </div>
         <div class="topbar-actions">
           <div class="info-pill">
-            <span>Accuracy:</span> <strong id="topbar-accuracy">99.95%</strong>
+            <span>F2-Score:</span> <strong id="topbar-f2">0.8134</strong>
+          </div>
+          <div class="info-pill">
+            <span>PR-AUC:</span> <strong id="topbar-prauc">0.8178</strong>
           </div>
           <div class="info-pill">
             <span>Precision:</span> <strong id="topbar-precision">92.59%</strong>
@@ -664,23 +667,23 @@
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; font-size: 11px;">
               <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
                 <span style="color: var(--text-dim);">Drift Analysis:</span><br/>
-                <strong style="color: var(--green-low);">No Covariate Shift Detected</strong><br/>
-                <span style="font-size: 10px; color: var(--text-muted);">Current PSI: 0.0241 (Threshold: 0.20)</span>
+                <strong id="health-drift-status" style="color: var(--green-low);">Monitoring Active</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);" id="health-drift-psi">Current PSI: Evaluating...</span>
               </div>
               <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                <span style="color: var(--text-dim);">Inference Throughput:</span><br/>
-                <strong>240 Transactions / Sec</strong><br/>
-                <span style="font-size: 10px; color: var(--text-muted);">Capacity Headroom: 88%</span>
+                <span style="color: var(--text-dim);">Session Inferences:</span><br/>
+                <strong id="health-session-tx">0 Inferences Recorded</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);" id="health-avg-latency">Mean Latency: -- ms</span>
               </div>
               <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                <span style="color: var(--text-dim);">Memory Utilization:</span><br/>
-                <strong>142 MB</strong><br/>
-                <span style="font-size: 10px; color: var(--text-muted);">Model Artifact Size: 436 KB</span>
+                <span style="color: var(--text-dim);">Inference Engine:</span><br/>
+                <strong style="color: var(--cyan-accent);">Pipeline Loaded</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Feature Dimension: 30 Features</span>
               </div>
               <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
                 <span style="color: var(--text-dim);">Model Versioning:</span><br/>
-                <strong>XGBoost v1.0.0</strong><br/>
-                <span style="font-size: 10px; color: var(--text-muted);">Last Trained: Phase 2 Run</span>
+                <strong id="health-model-name">XGBoost v1.0.0</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Trained: Baseline + Imbalance</span>
               </div>
             </div>
           </div>

@@ -7,6 +7,16 @@ let appPresets = {};
 let currentModalTxId = null;
 let charts = {};
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
 });
@@ -284,6 +294,16 @@ async function loadOverviewData(silent = false) {
     document.getElementById("kpi-high-risk-count").textContent = kpis.high_risk_count.toLocaleString();
     document.getElementById("kpi-precision-recall").textContent = `${kpis.model_precision}% / ${kpis.model_recall}%`;
 
+    // Dynamic topbar bindings
+    const f2El = document.getElementById("topbar-f2");
+    if (f2El && kpis.model_f2) f2El.textContent = kpis.model_f2.toFixed(4);
+    const praucEl = document.getElementById("topbar-prauc");
+    if (praucEl && kpis.model_pr_auc) praucEl.textContent = kpis.model_pr_auc.toFixed(4);
+    const precEl = document.getElementById("topbar-precision");
+    if (precEl && kpis.model_precision) precEl.textContent = `${kpis.model_precision}%`;
+    const recEl = document.getElementById("topbar-recall");
+    if (recEl && kpis.model_recall) recEl.textContent = `${kpis.model_recall}%`;
+
     // Render Recent Stream in Overview
     const streamContainer = document.getElementById("overview-recent-stream");
     if (streamContainer && json.recent_activity) {
@@ -291,16 +311,19 @@ async function loadOverviewData(silent = false) {
       json.recent_activity.slice(0, 5).forEach((item) => {
         const isFraud = item.is_flagged || item.risk_score >= 30;
         const color = isFraud ? "var(--red-high)" : "var(--green-low)";
+        const safeId = escapeHtml(item.id);
+        const safeCat = escapeHtml(item.risk_category);
+        const safeTime = escapeHtml(String(item.timestamp || "").split(" ")[1] || "");
         streamHtml += `
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid var(--border-subtle); font-size: 11px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${item.id}</span>
-              <span class="badge ${item.risk_score >= 71 ? "badge-high" : item.risk_score >= 31 ? "badge-medium" : "badge-low"}">${item.risk_category}</span>
+              <span style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${safeId}</span>
+              <span class="badge ${item.risk_score >= 71 ? "badge-high" : item.risk_score >= 31 ? "badge-medium" : "badge-low"}">${safeCat}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 14px;">
               <span class="mono">$${parseFloat(item.amount).toFixed(2)}</span>
-              <span class="mono" style="color: ${color}; font-weight: 700;">Score: ${item.risk_score}</span>
-              <span style="color: var(--text-muted); font-size: 10px;">${item.timestamp.split(" ")[1] || ""}</span>
+              <span class="mono" style="color: ${color}; font-weight: 700;">Score: ${parseInt(item.risk_score, 10)}</span>
+              <span style="color: var(--text-muted); font-size: 10px;">${safeTime}</span>
             </div>
           </div>
         `;
@@ -341,22 +364,27 @@ async function loadQueueData() {
     json.items.forEach((item) => {
       const scoreBadge = item.risk_score >= 71 ? "badge-high" : item.risk_score >= 31 ? "badge-medium" : "badge-low";
       const statusClass = item.status === "CONFIRMED_FRAUD" ? "badge-high" : item.status === "DISMISSED_FALSE_ALARM" ? "badge-low" : "badge-medium";
-      const priorityTier = item.priority_tier || (item.risk_score >= 71 ? "P1 - CRITICAL" : item.risk_score >= 31 ? "P2 - HIGH" : "P3 - MEDIUM");
-      const priorityClass = item.badge_class || (item.risk_score >= 71 ? "priority-p1" : item.risk_score >= 31 ? "priority-p2" : "priority-p3");
+      const priorityTier = escapeHtml(item.priority_tier || (item.risk_score >= 71 ? "P1 - CRITICAL" : item.risk_score >= 31 ? "P2 - HIGH" : "P3 - MEDIUM"));
+      const priorityClass = escapeHtml(item.badge_class || (item.risk_score >= 71 ? "priority-p1" : item.risk_score >= 31 ? "priority-p2" : "priority-p3"));
+      const safeId = escapeHtml(item.id);
+      const safeTime = escapeHtml(item.timestamp);
+      const safeCat = escapeHtml(item.risk_category);
+      const safeDriver = escapeHtml(item.top_driver || "V14");
+      const safeStatus = escapeHtml(String(item.status || "").replace("_", " "));
 
       rowsHtml += `
         <tr>
-          <td class="mono"><strong>${item.id}</strong></td>
-          <td style="color: var(--text-dim); font-size: 11px;">${item.timestamp}</td>
+          <td class="mono"><strong>${safeId}</strong></td>
+          <td style="color: var(--text-dim); font-size: 11px;">${safeTime}</td>
           <td class="mono">$${parseFloat(item.amount).toFixed(2)}</td>
           <td><span class="badge-priority ${priorityClass}">${priorityTier}</span></td>
-          <td><span class="badge ${scoreBadge}">${item.risk_score}/100</span></td>
-          <td><span style="font-size: 11px; font-weight: 600;">${item.risk_category}</span></td>
+          <td><span class="badge ${scoreBadge}">${parseInt(item.risk_score, 10)}/100</span></td>
+          <td><span style="font-size: 11px; font-weight: 600;">${safeCat}</span></td>
           <td class="mono">${parseFloat(item.probability).toFixed(4)}</td>
-          <td><span class="mono" style="color: var(--cyan-accent);">${item.top_driver || "V14"}</span></td>
-          <td><span class="badge ${statusClass}">${item.status.replace("_", " ")}</span></td>
+          <td><span class="mono" style="color: var(--cyan-accent);">${safeDriver}</span></td>
+          <td><span class="badge ${statusClass}">${safeStatus}</span></td>
           <td>
-            <button class="btn btn-secondary btn-sm" onclick="openTransactionModal('${item.id}')">
+            <button class="btn btn-secondary btn-sm" onclick="openTransactionModal('${safeId}')">
               Review
             </button>
           </td>
@@ -380,31 +408,39 @@ async function openTransactionModal(txId) {
     return;
   }
 
-  document.getElementById("modal-tx-title").textContent = `Investigation Review — ${tx.id}`;
+  const safeId = escapeHtml(tx.id);
+  const safeCat = escapeHtml(tx.risk_category);
+  const safeStatus = escapeHtml(tx.status);
+  const safeTime = escapeHtml(tx.timestamp);
+
+  document.getElementById("modal-tx-title").textContent = `Investigation Review — ${safeId}`;
 
   const bodyEl = document.getElementById("modal-tx-body");
   let factorsHtml = "";
   if (tx.top_factors && tx.top_factors.length > 0) {
     tx.top_factors.forEach((f) => {
+      const featName = escapeHtml(f.feature_name);
+      const featVal = parseFloat(f.feature_value).toFixed(3);
+      const shapVal = parseFloat(f.shap_value).toFixed(3);
       factorsHtml += `
         <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px; margin-bottom: 4px;">
-          <span class="mono" style="color: #fff;">${f.feature_name} (val: ${f.feature_value})</span>
-          <span class="mono" style="color: var(--red-high); font-weight: 700;">+${f.shap_value.toFixed(3)}</span>
+          <span class="mono" style="color: #fff;">${featName} (val: ${featVal})</span>
+          <span class="mono" style="color: var(--red-high); font-weight: 700;">+${shapVal}</span>
         </div>
       `;
     });
   } else {
-    factorsHtml = `<span style="color: var(--text-dim); font-size: 11px;">Top factor: ${tx.top_driver}</span>`;
+    factorsHtml = `<span style="color: var(--text-dim); font-size: 11px;">Top factor: ${escapeHtml(tx.top_driver || "V14")}</span>`;
   }
 
   bodyEl.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 12px; background: rgba(0,0,0,0.25); padding: 14px; border-radius: 6px;">
       <div><span style="color: var(--text-dim);">Amount:</span><br/><strong class="mono">$${parseFloat(tx.amount).toFixed(2)}</strong></div>
-      <div><span style="color: var(--text-dim);">Risk Score:</span><br/><strong class="mono" style="color: var(--red-high);">${tx.risk_score} / 100</strong></div>
+      <div><span style="color: var(--text-dim);">Risk Score:</span><br/><strong class="mono" style="color: var(--red-high);">${parseInt(tx.risk_score, 10)} / 100</strong></div>
       <div><span style="color: var(--text-dim);">Probability:</span><br/><strong class="mono">${parseFloat(tx.probability).toFixed(5)}</strong></div>
-      <div><span style="color: var(--text-dim);">Category:</span><br/><strong>${tx.risk_category}</strong></div>
-      <div><span style="color: var(--text-dim);">Triage Status:</span><br/><strong>${tx.status}</strong></div>
-      <div><span style="color: var(--text-dim);">Timestamp:</span><br/><span style="font-size: 11px;">${tx.timestamp}</span></div>
+      <div><span style="color: var(--text-dim);">Category:</span><br/><strong>${safeCat}</strong></div>
+      <div><span style="color: var(--text-dim);">Triage Status:</span><br/><strong>${safeStatus}</strong></div>
+      <div><span style="color: var(--text-dim);">Timestamp:</span><br/><span style="font-size: 11px;">${safeTime}</span></div>
     </div>
 
     <div>
@@ -598,6 +634,26 @@ async function loadMonitoringData(silent = false) {
 
     const latEl = document.getElementById("mon-latency");
     if (latEl) latEl.textContent = `${t.system_health.mean_latency_ms} ms`;
+
+    // Production health dynamic telemetry bindings
+    const driftStatusEl = document.getElementById("health-drift-status");
+    const driftPsiEl = document.getElementById("health-drift-psi");
+    if (driftStatusEl) {
+      driftStatusEl.textContent = psi.status === "STABLE" ? "No Covariate Shift Detected" : "Covariate Drift Warning";
+      driftStatusEl.style.color = psi.color;
+    }
+    if (driftPsiEl) {
+      driftPsiEl.textContent = `Current PSI: ${psi.psi_score.toFixed(4)} (Threshold: 0.20)`;
+    }
+
+    const sessionTxEl = document.getElementById("health-session-tx");
+    const avgLatEl = document.getElementById("health-avg-latency");
+    if (sessionTxEl) {
+      sessionTxEl.textContent = `${t.total_inferences} Inferences Logged`;
+    }
+    if (avgLatEl) {
+      avgLatEl.textContent = `Mean Latency: ${t.system_health.mean_latency_ms} ms`;
+    }
 
     // Render Histogram & Doughnut
     if (t.probability_histogram) {

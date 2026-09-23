@@ -289,12 +289,12 @@ class TransactionTracker:
         0.10 <= PSI < 0.25: Moderate drift (Monitor)
         PSI >= 0.25: Significant drift (Action Required)
         """
-        if len(actual_probas) < 10 or len(self.reference_distribution) < 10:
+        if len(actual_probas) < 5 or len(self.reference_distribution) < 5:
             return {
-                "psi_score": 0.0241,
+                "psi_score": 0.0,
                 "status": "STABLE",
                 "color": "#10b981",
-                "message": "Model distribution aligns with reference baseline.",
+                "message": "Insufficient live stream data for drift calculation (<5 samples). Baseline intact.",
             }
 
         # Create equal-frequency bins based on reference
@@ -335,6 +335,7 @@ class TransactionTracker:
     def get_monitoring_telemetry(self) -> dict[str, Any]:
         """
         Generate complete operational telemetry for Dashboard Section 6.
+        Uses verified transaction counts only — zero fabricated placeholders.
         """
         recent = self.transactions[-500:] if self.transactions else []
         probas = np.array([t.get("probability", 0.0) for t in recent]) if recent else np.array([])
@@ -345,7 +346,7 @@ class TransactionTracker:
             counts, _ = np.histogram(probas, bins=np.linspace(0.0, 1.0, 11))
             hist_counts = [int(c) for c in counts]
         else:
-            hist_counts = [420, 35, 12, 6, 4, 3, 2, 4, 8, 16]
+            hist_counts = [0] * 10
 
         # PSI drift
         psi_info = self.compute_psi(probas)
@@ -355,15 +356,16 @@ class TransactionTracker:
         med_count = sum(1 for t in recent if 31 <= t.get("risk_score", 0) <= 70)
         high_count = sum(1 for t in recent if t.get("risk_score", 0) > 70)
         suspected_count = sum(1 for t in recent if t.get("is_flagged", False))
+        fraud_rate = round((suspected_count / len(recent)) * 100, 2) if len(recent) > 0 else 0.0
 
         return {
-            "total_processed": max(self.total_processed, 1284),
-            "recent_window_size": len(recent) if recent else 500,
-            "suspected_fraud_count": suspected_count if recent else 84,
-            "high_risk_count": high_count if recent else 42,
-            "medium_risk_count": med_count if recent else 48,
-            "low_risk_count": low_count if recent else 410,
-            "fraud_rate_pct": round((suspected_count / len(recent)) * 100, 2) if recent else 6.54,
+            "total_processed": self.total_processed,
+            "recent_window_size": len(recent),
+            "suspected_fraud_count": suspected_count,
+            "high_risk_count": high_count,
+            "medium_risk_count": med_count,
+            "low_risk_count": low_count,
+            "fraud_rate_pct": fraud_rate,
             "psi": psi_info,
             "probability_histogram": {
                 "labels": hist_bins,

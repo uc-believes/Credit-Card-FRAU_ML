@@ -55,10 +55,17 @@ class AdaptiveIntelligenceEngine:
 
     def _load_baseline(self) -> None:
         """Load validation set and cached model predictions for baseline computation."""
-        val_path = self.root / "data" / "processed" / "val.parquet"
+        val_rel = self.cfg.get("paths", {}).get("data", {}).get(
+            "validation", "data/processed/validation.parquet"
+        )
+        val_path = self.root / val_rel
         if not val_path.exists():
-            logger.warning("Validation parquet not found at %s", val_path)
-            return
+            alt_path = self.root / "data" / "processed" / "val.parquet"
+            if alt_path.exists():
+                val_path = alt_path
+            else:
+                logger.warning("Validation parquet not found at %s", val_path)
+                return
 
         try:
             self._val_df = pd.read_parquet(val_path)

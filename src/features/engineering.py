@@ -78,20 +78,20 @@ class FeatureEngineer:
     # Public API
     # ------------------------------------------------------------------
 
-    def transform(self, df: pd.DataFrame, drop_duplicates: bool = True) -> pd.DataFrame:
+    def transform(self, df: pd.DataFrame, drop_duplicates: bool = False) -> pd.DataFrame:
         """
         Apply feature engineering to a raw DataFrame.
 
         Steps (in order):
-            1. Optionally drop duplicate rows.
+            1. Optionally drop duplicate rows (only when drop_duplicates=True).
             2. Drop columns listed in config.dataset.drop_columns.
             3. Create log_amount from Amount.
             4. Create hour_of_day and is_night from Time.
 
         Args:
             df: Raw DataFrame from DataLoader (NEVER modifies the original).
-            drop_duplicates: Drop duplicate rows (default True for training).
-                             Set False for inference on single transactions.
+            drop_duplicates: Drop duplicate rows (default False to preserve row counts).
+                             Set True explicitly during training data cleanup if desired.
 
         Returns:
             New DataFrame with all original columns plus derived features.
@@ -199,18 +199,19 @@ class FeatureEngineer:
 
     def _create_log_amount(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Create log_amount = log1p(Amount).
+        Create log_amount = log1p(max(Amount, 0)).
 
         Rationale (from actual data):
             Amount has skewness=16.98, kurtosis=845.09.
-            log1p handles Amount=0 (1,825 such transactions verified) safely.
-            After transform: skewness is significantly reduced.
+            log1p handles Amount=0 safely.
+            Bounded with max(0, Amount) to prevent NaN/runtime crashes on negative input.
         """
         if "Amount" not in df.columns:
             logger.warning("'Amount' column not found — log_amount not created.")
             return df
         df = df.copy()
-        df["log_amount"] = np.log1p(df["Amount"])
+        safe_amount = np.maximum(df["Amount"].fillna(0.0).to_numpy(dtype=float), 0.0)
+        df["log_amount"] = np.log1p(safe_amount)
         return df
 
     def _create_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -221,13 +222,12 @@ class FeatureEngineer:
             Time spans 0–172,792 seconds (exactly 48 hours).
             We extract time-of-day using modulo 86400 / 3600.
             8.40% of transactions occur between 0–6h (night window).
-            Fraud transactions have mean Time=80,747s (earlier) vs 94,838s (legit).
-            Night flag may capture low-activity fraud windows.
         """
         if "Time" not in df.columns:
             logger.warning("'Time' column not found — time features not created.")
             return df
         df = df.copy()
-        df["hour_of_day"] = (df["Time"] % _SECONDS_PER_DAY) / 3600.0
+        safe_time = np.maximum(df["Time"].fillna(0.0).to_numpy(dtype=float), 0.0)
+        df["hour_of_day"] = (safe_time % _SECONDS_PER_DAY) / 3600.0
         df["is_night"] = (df["hour_of_day"] < _NIGHT_HOUR_END).astype(int)
         return df
