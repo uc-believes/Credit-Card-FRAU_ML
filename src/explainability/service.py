@@ -216,12 +216,17 @@ class FraudIntelligenceService:
         return {
             "probability": assessment.probability,
             "risk_score": assessment.risk_score,
+            "risk_category": assessment.risk_category,
             "risk_level": assessment.risk_category,
             "prediction": assessment.prediction,
             "decision": assessment.decision,
+            "status_label": assessment.status_label,
+            "is_flagged": assessment.is_flagged,
             "color": assessment.color,
             "threshold": assessment.threshold,
+            "decision_threshold": assessment.decision_threshold,
             "description": assessment.description,
+            "legitimacy_disclaimer": assessment.legitimacy_disclaimer,
             "base_value": explanation.base_value,
             "margin_value": explanation.margin_value,
             "top_contributing_factors": [

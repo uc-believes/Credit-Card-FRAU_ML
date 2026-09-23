@@ -171,32 +171,48 @@ threshold:
   search_steps: 100
 
 # -----------------------------------------------------------------------------
-# Risk Engine — Fraud Probability → Risk Category
-# Probability is converted to a 0-100 risk score, then categorized.
-# These thresholds are configurable and must not be hard-coded elsewhere.
+# Risk Engine & Decision Logic — Probability → Risk Score → Business Decision
+# Probability is converted to a normalized 0-100 risk score, then categorized.
+# Decisions are evaluated against a configurable operational fraud decision threshold.
 # -----------------------------------------------------------------------------
 risk_engine:
-  # Risk score = round(fraud_probability * 100)
+  # Score normalization & category boundaries
   thresholds:
-    low_max: 30          # 0-30 = LOW
-    medium_max: 70       # 31-70 = MEDIUM
-    # 71-100 = HIGH
+    low_max: 30          # 0-30 = LOW RISK
+    medium_max: 70       # 31-70 = MEDIUM RISK
+    # 71-100 = HIGH RISK
+
+  # Configurable business decision threshold (probability >= threshold -> REVIEW)
+  # Default is calibrated from Phase 2 validation tuning (0.2773)
+  decision_threshold: 0.2773
+
+  # Action wording
+  actions:
+    accept: "ACCEPT"
+    review: "REVIEW"
+    flagged: "FLAGGED FOR INVESTIGATION"
+
+  # Risk Categories & Styling
   categories:
     low:
-      label: "LOW"
+      label: "LOW RISK"
       color: "#22c55e"
-      decision: "ALLOW"
-      description: "Transaction appears legitimate. No action required."
+      description: "Transaction exhibits low probability of fraud based on historical models."
     medium:
-      label: "MEDIUM"
+      label: "MEDIUM RISK"
       color: "#f59e0b"
-      decision: "MONITOR"
-      description: "Transaction has elevated risk. Flag for review."
+      description: "Transaction exhibits elevated statistical anomaly or fraud indicators."
     high:
-      label: "HIGH"
+      label: "HIGH RISK"
       color: "#ef4444"
-      decision: "REVIEW"
-      description: "Transaction is high risk. Requires immediate review."
+      description: "Transaction exhibits strong probability of unauthorized activity."
+
+  # Critical operational policy notice: ACCEPT is not a guarantee
+  legitimacy_disclaimer: >
+    ACCEPT indicates the transaction satisfies current risk tolerance criteria
+    for automated clearance. It does NOT constitute a warranty, certification,
+    or guarantee of transaction legitimacy. All transactions remain subject to
+    post-settlement dispute and chargeback rules.
 
 # -----------------------------------------------------------------------------
 # Explainability (SHAP)
