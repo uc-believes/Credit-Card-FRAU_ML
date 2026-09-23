@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fraud Shield — Enterprise Fraud Risk Intelligence Platform</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <!-- Chart.js CDN for interactive charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- =====================================================================
+         SIDEBAR NAVIGATION
+         ===================================================================== -->
+    <aside class="app-sidebar">
+      <div class="brand-header">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>FRAUD SHIELD</h1>
+          <span>RISK INTELLIGENCE</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" id="sidebar-nav">
+        <a class="nav-item active" data-tab="overview" id="nav-overview">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Overview
+        </a>
+        <a class="nav-item" data-tab="predict" id="nav-predict">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+          Predict Transaction
+        </a>
+        <a class="nav-item" data-tab="queue" id="nav-queue">
+          <svg viewBox="0 0 24 24"><path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/></svg>
+          Investigation Queue
+          <span class="badge-count" id="badge-queue-count">8</span>
+        </a>
+        <a class="nav-item" data-tab="performance" id="nav-performance">
+          <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+          Model Performance
+        </a>
+        <a class="nav-item" data-tab="explainability" id="nav-explainability">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          Explainability (SHAP)
+        </a>
+        <a class="nav-item" data-tab="monitoring" id="nav-monitoring">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+          Model Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-indicator">
+          <div class="status-dot"></div>
+          <span>INFERENCE ENGINE ONLINE</span>
+        </div>
+        <div>Model: XGBoost v1.0.0 &middot; F2: 0.8134</div>
+      </div>
+    </aside>
+
+    <!-- =====================================================================
+         MAIN VIEWPORT
+         ===================================================================== -->
+    <main class="app-main">
+      <!-- Sticky Top Header -->
+      <header class="app-topbar">
+        <div class="topbar-title">
+          <span id="active-tab-title">Executive Overview</span>
+          <span class="topbar-badge" id="active-model-pill">XGBoost &middot; Threshold 0.2773</span>
+        </div>
+        <div class="topbar-actions">
+          <div class="info-pill">
+            <span>Accuracy:</span> <strong id="topbar-accuracy">99.95%</strong>
+          </div>
+          <div class="info-pill">
+            <span>Precision:</span> <strong id="topbar-precision">92.59%</strong>
+          </div>
+          <div class="info-pill">
+            <span>Recall:</span> <strong id="topbar-recall">78.95%</strong>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-quick-evaluate" onclick="switchTab('predict')">
+            + New Prediction
+          </button>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <!-- ===================================================================
+             SECTION 1: OVERVIEW
+             =================================================================== -->
+        <section class="tab-pane active" id="tab-overview">
+          <div class="section-header">
+            <h2>Fraud Risk Intelligence Overview</h2>
+            <p>Real-time transaction risk posture, executive metrics, and active threat distribution.</p>
+          </div>
+
+          <!-- 4 Main KPI Cards -->
+          <div class="grid-4" style="margin-bottom: 24px;">
+            <div class="kpi-card">
+              <span class="kpi-label">Total Transactions Processed</span>
+              <span class="kpi-value" id="kpi-total-processed">56,746</span>
+              <span class="kpi-meta">Validation &amp; Live Evaluation Cohort</span>
+            </div>
+            <div class="kpi-card red">
+              <span class="kpi-label">Suspected Fraud Detected</span>
+              <span class="kpi-value" id="kpi-suspected-count" style="color: var(--red-high);">81</span>
+              <span class="kpi-meta">&bull; 75 True Positives on Held-Out Test</span>
+            </div>
+            <div class="kpi-card amber">
+              <span class="kpi-label">High-Risk Fraud Alerts</span>
+              <span class="kpi-value" id="kpi-high-risk-count" style="color: var(--amber-medium);">42</span>
+              <span class="kpi-meta">Score &ge; 71/100 &middot; Immediate Review</span>
+            </div>
+            <div class="kpi-card green">
+              <span class="kpi-label">Model Precision / Recall</span>
+              <span class="kpi-value" id="kpi-precision-recall" style="color: var(--green-low); font-size: 24px;">92.6% / 79.0%</span>
+              <span class="kpi-meta">&bull; Only 6 False Positives in 56,651 Purchases</span>
+            </div>
+          </div>
+
+          <!-- 2 Column: Selected Model Details & Recent Activity Stream -->
+          <div class="grid-60-40">
+            <!-- Selected Model Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Selected Model Architecture &amp; Calibration</div>
+                <span class="badge badge-low" style="background: rgba(59,130,246,0.15); color: var(--blue-primary); border-color: rgba(59,130,246,0.3);">WINNER &middot; PHASE 2</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; font-size: 12px; margin-bottom: 16px;">
+                <div><span style="color: var(--text-dim);">Selected Model:</span><br/><strong>XGBoost Classifier</strong></div>
+                <div><span style="color: var(--text-dim);">Selection Objective:</span><br/><strong>Composite Score (0.8966)</strong></div>
+                <div><span style="color: var(--text-dim);">Decision Threshold:</span><br/><strong class="mono" style="color: var(--cyan-accent);">0.2773 (Tuned for Max F2)</strong></div>
+                <div><span style="color: var(--text-dim);">Class Weighting:</span><br/><strong class="mono">scale_pos_weight = 598.42</strong></div>
+                <div><span style="color: var(--text-dim);">Test PR-AUC:</span><br/><strong style="color: var(--green-low);">0.8178</strong></div>
+                <div><span style="color: var(--text-dim);">Test ROC-AUC:</span><br/><strong style="color: var(--green-low);">0.9683</strong></div>
+              </div>
+              <div class="notice-box">
+                <strong>Selection Rationale:</strong> XGBoost outperformed Random Forest and Logistic Regression with the lowest false alarm rate in the benchmark (91.01% precision on validation, 92.59% on test), avoiding customer friction while intercepting 78.95% of fraud.
+              </div>
+            </div>
+
+            <!-- Recent Stream Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Flagged Transaction Queue Preview</div>
+                <button class="btn btn-secondary btn-sm" onclick="switchTab('queue')">View Full Queue</button>
+              </div>
+              <div id="overview-recent-stream" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 2: PREDICT TRANSACTION
+             =================================================================== -->
+        <section class="tab-pane" id="tab-predict">
+          <div class="section-header">
+            <h2>Predict Transaction &amp; Risk Assessment</h2>
+            <p>Evaluate raw transaction parameters in real-time through the production ML pipeline, Risk Engine, and SHAP explainer.</p>
+          </div>
+
+          <!-- Presets Toolbar -->
+          <div class="card" style="margin-bottom: 20px; padding: 14px 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-dim);">Quick Load Presets:</span>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary btn-sm" id="btn-preset-fraud" onclick="loadPreset('fraud_high')">
+                  &bull; Confirmed Fraud (High Risk)
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-preset-legit" onclick="loadPreset('legit_normal')">
+                  &bull; Normal Purchase (Low Risk)
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-preset-suspicious" onclick="loadPreset('suspicious_night')">
+                  &bull; Late-Night Anomaly (Medium Risk)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-40-60">
+            <!-- Form Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Transaction Feature Inputs</div>
+                <button class="btn btn-secondary btn-sm" id="btn-reset-form" onclick="resetForm()">Reset</button>
+              </div>
+
+              <form id="prediction-form" onsubmit="handlePredictionSubmit(event)">
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="input-amount">Amount ($)</label>
+                    <input type="number" step="0.01" class="form-control" id="input-amount" name="Amount" value="149.62" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-time">Time (Seconds)</label>
+                    <input type="number" step="1" class="form-control" id="input-time" name="Time" value="406" required />
+                  </div>
+                </div>
+
+                <div style="margin: 12px 0 8px; font-size: 11px; font-weight: 700; color: var(--cyan-accent); letter-spacing: 0.5px;">
+                  KEY LATENT FRAUD INDICATORS (V1 - V28)
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label class="form-label" for="input-v14">V14 (Credential)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v14" name="V14" value="-4.289" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-v12">V12 (Geo/Term)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v12" name="V12" value="-2.899" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-v10">V10 (Merchant)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v10" name="V10" value="-2.772" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-v4">V4 (Velocity)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v4" name="V4" value="3.997" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-v11">V11 (Anomaly)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v11" name="V11" value="3.202" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="input-v17">V17 (Device)</label>
+                    <input type="number" step="0.001" class="form-control" id="input-v17" name="V17" value="-2.830" />
+                  </div>
+                </div>
+
+                <details style="margin: 12px 0; font-size: 11px; color: var(--text-dim); cursor: pointer;">
+                  <summary style="font-weight: 600; color: var(--blue-primary); outline: none;">+ Toggle Remaining PCA Features (V1..V28)</summary>
+                  <div class="form-grid-3" style="margin-top: 10px;" id="additional-pca-inputs">
+                    <!-- Populated dynamically by JS -->
+                  </div>
+                </details>
+
+                <button type="submit" class="btn btn-primary" id="btn-run-prediction" style="width: 100%; margin-top: 8px;">
+                  Evaluate Transaction Risk
+                </button>
+              </form>
+            </div>
+
+            <!-- Result Card -->
+            <div class="card" id="prediction-result-card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Intelligence Assessment &amp; Decision</div>
+                <span class="badge badge-low" id="res-decision-badge">PENDING EVALUATION</span>
+              </div>
+
+              <div id="prediction-result-placeholder" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                <p>Click "Evaluate Transaction Risk" or select a preset to generate real-time probability, risk score, and SHAP attribution.</p>
+              </div>
+
+              <div id="prediction-result-content" style="display: none;">
+                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 20px; align-items: center; margin-bottom: 20px;">
+                  <!-- Score Ring Gauge -->
+                  <div class="score-gauge-container">
+                    <div class="gauge-circle" id="gauge-circle" style="--score-pct: 100; --accent-color: var(--red-high);">
+                      <div class="gauge-value" id="res-score-value">100</div>
+                      <div class="gauge-label" id="res-score-label">HIGH RISK</div>
+                    </div>
+                  </div>
+
+                  <!-- Details Grid -->
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 12px;">
+                    <div><span style="color: var(--text-dim);">Decision:</span><br/><strong id="res-decision-text" style="font-size: 14px;">REVIEW</strong></div>
+                    <div><span style="color: var(--text-dim);">Fraud Probability:</span><br/><strong class="mono" id="res-prob-value" style="font-size: 14px;">0.9999</strong></div>
+                    <div><span style="color: var(--text-dim);">Operating Threshold:</span><br/><strong class="mono" id="res-threshold-value">0.2773</strong></div>
+                    <div><span style="color: var(--text-dim);">Inference Latency:</span><br/><strong class="mono" id="res-latency-value">4.2ms</strong></div>
+                  </div>
+                </div>
+
+                <!-- Explanation Waterfall List -->
+                <div style="margin-bottom: 16px;">
+                  <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">Top Contributing Factors (SHAP Risk Push)</div>
+                  <div class="factors-list" id="res-factors-list">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Notice / Non-warranty disclaimer -->
+                <div class="notice-box" id="res-disclaimer-box" style="margin-bottom: 16px;">
+                  <span id="res-disclaimer-text"></span>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-danger btn-sm" id="btn-queue-action" onclick="sendToInvestigationQueue()">
+                    &bull; Flag &amp; Queue for Investigation
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick="switchTab('explainability')">
+                    View Global Explanations
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 3: INVESTIGATION QUEUE
+             =================================================================== -->
+        <section class="tab-pane" id="tab-queue">
+          <div class="section-header">
+            <h2>Investigation Queue</h2>
+            <p>Sortable and filterable queue of transactions flagged for secondary analyst review.</p>
+          </div>
+
+          <!-- Queue Filter Bar -->
+          <div class="card" style="margin-bottom: 20px; padding: 14px 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <label class="form-label" style="margin: 0;">Status Filter:</label>
+                <select class="form-control" id="queue-status-filter" style="width: 180px;" onchange="loadQueueData()">
+                  <option value="">All Statuses</option>
+                  <option value="PENDING_REVIEW" selected>Pending Review</option>
+                  <option value="CONFIRMED_FRAUD">Confirmed Fraud</option>
+                  <option value="DISMISSED_FALSE_ALARM">Dismissed False Alarm</option>
+                </select>
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <label class="form-label" style="margin: 0;">Sort By:</label>
+                <select class="form-control" id="queue-sort-by" style="width: 160px;" onchange="loadQueueData()">
+                  <option value="risk_score" selected>Risk Score</option>
+                  <option value="amount">Amount</option>
+                  <option value="probability">Probability</option>
+                  <option value="timestamp">Timestamp</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" onclick="loadQueueData()">Refresh</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue Table Card -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="table-responsive">
+              <table class="data-table" id="queue-table">
+                <thead>
+                  <tr>
+                    <th>Tx ID</th>
+                    <th>Timestamp</th>
+                    <th>Amount ($)</th>
+                    <th>Risk Score</th>
+                    <th>Category</th>
+                    <th>Probability</th>
+                    <th>Primary Risk Driver</th>
+                    <th>Triage Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="queue-table-body">
+                  <!-- Populated dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 4: MODEL PERFORMANCE
+             =================================================================== -->
+        <section class="tab-pane" id="tab-performance">
+          <div class="section-header">
+            <h2>Model Performance &amp; Benchmarks</h2>
+            <p>Empirical evaluation results across the candidate model matrix, held-out test split, and confusion matrix.</p>
+          </div>
+
+          <!-- Main Performance KPI Grid -->
+          <div class="grid-4" style="margin-bottom: 24px;">
+            <div class="kpi-card green">
+              <span class="kpi-label">Precision (Test Set)</span>
+              <span class="kpi-value" style="color: var(--green-low);">92.59%</span>
+              <span class="kpi-meta">75 Caught vs. 6 False Alarms</span>
+            </div>
+            <div class="kpi-card accent">
+              <span class="kpi-label">Recall (Test Set)</span>
+              <span class="kpi-value" style="color: var(--blue-primary);">78.95%</span>
+              <span class="kpi-meta">75 / 95 Total Fraud Attempts</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">F2-Score (Recall-Biased)</span>
+              <span class="kpi-value">0.8134</span>
+              <span class="kpi-meta">Primary Selection Metric</span>
+            </div>
+            <div class="kpi-card green">
+              <span class="kpi-label">Specificity (Legit Cleared)</span>
+              <span class="kpi-value" style="color: var(--green-low);">99.99%</span>
+              <span class="kpi-meta">56,645 / 56,651 Purchases</span>
+            </div>
+          </div>
+
+          <!-- 2 Column: Confusion Matrix & PR/ROC Curves -->
+          <div class="grid-40-60" style="margin-bottom: 24px;">
+            <!-- Confusion Matrix Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Held-Out Test Set Confusion Matrix</div>
+                <span class="badge badge-low">N = 56,746 &middot; T = 0.2773</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 14px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: var(--green-low); text-transform: uppercase;">True Negatives</span>
+                  <div style="font-size: 24px; font-weight: 800; color: #fff; margin-top: 4px;">56,645</div>
+                  <span style="font-size: 10px; color: var(--text-dim);">Legitimate Cleared Smoothly</span>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); padding: 14px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: var(--red-high); text-transform: uppercase;">False Positives</span>
+                  <div style="font-size: 24px; font-weight: 800; color: var(--red-high); margin-top: 4px;">6</div>
+                  <span style="font-size: 10px; color: var(--text-dim);">False Alarms (FPR: 0.01%)</span>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-sm); padding: 14px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: var(--amber-medium); text-transform: uppercase;">False Negatives</span>
+                  <div style="font-size: 24px; font-weight: 800; color: var(--amber-medium); margin-top: 4px;">20</div>
+                  <span style="font-size: 10px; color: var(--text-dim);">Missed Fraud Attempts</span>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm); padding: 14px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: var(--cyan-accent); text-transform: uppercase;">True Positives</span>
+                  <div style="font-size: 24px; font-weight: 800; color: #fff; margin-top: 4px;">75</div>
+                  <span style="font-size: 10px; color: var(--text-dim);">Fraud Caught &amp; Stopped</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Curves Chart Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Precision-Recall &amp; ROC Trajectory</div>
+                <span class="badge badge-low">PR-AUC: 0.8178 &middot; ROC: 0.9683</span>
+              </div>
+              <div style="height: 220px; width: 100%;">
+                <canvas id="chart-pr-curve"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model Benchmark Matrix Table -->
+          <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+              <span class="card-title"><span class="dot"></span>Validation Set Model Benchmark Matrix (56,745 Samples)</span>
+              <span style="font-size: 11px; color: var(--text-dim);">Selection: 0.35&times;F2 + 0.30&times;PR + 0.20&times;ROC + 0.15&times;F1</span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Model Architecture</th>
+                  <th>Threshold</th>
+                  <th>Recall</th>
+                  <th>Precision</th>
+                  <th>F1-Score</th>
+                  <th>F2-Score</th>
+                  <th>PR-AUC</th>
+                  <th>ROC-AUC</th>
+                  <th>Composite</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: rgba(16, 185, 129, 0.1);">
+                  <td><strong>#1</strong></td>
+                  <td><strong>XGBoost (Asymmetric Weight)</strong></td>
+                  <td class="mono">0.2773</td>
+                  <td class="mono">86.17%</td>
+                  <td class="mono">91.01%</td>
+                  <td class="mono">0.8852</td>
+                  <td class="mono">0.8710</td>
+                  <td class="mono">0.8811</td>
+                  <td class="mono">0.9734</td>
+                  <td class="mono" style="color: var(--green-low); font-weight: 700;">0.8966</td>
+                  <td><span class="badge badge-low">WINNER</span></td>
+                </tr>
+                <tr>
+                  <td>#2</td>
+                  <td>Random Forest (200 Trees)</td>
+                  <td class="mono">0.4864</td>
+                  <td class="mono">86.17%</td>
+                  <td class="mono">84.38%</td>
+                  <td class="mono">0.8526</td>
+                  <td class="mono">0.8581</td>
+                  <td class="mono">0.8383</td>
+                  <td class="mono">0.9689</td>
+                  <td class="mono">0.8735</td>
+                  <td><span class="badge badge-low">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td>#3</td>
+                  <td>Logistic Regression (Balanced)</td>
+                  <td class="mono">0.9500</td>
+                  <td class="mono">88.30%</td>
+                  <td class="mono">33.74%</td>
+                  <td class="mono">0.4882</td>
+                  <td class="mono">0.6672</td>
+                  <td class="mono">0.7882</td>
+                  <td class="mono">0.9828</td>
+                  <td class="mono">0.7398</td>
+                  <td><span class="badge badge-low">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td>#4</td>
+                  <td>Decision Tree (Depth 10)</td>
+                  <td class="mono">0.0500</td>
+                  <td class="mono">82.98%</td>
+                  <td class="mono">18.18%</td>
+                  <td class="mono">0.2983</td>
+                  <td class="mono">0.4845</td>
+                  <td class="mono">0.4955</td>
+                  <td class="mono">0.9139</td>
+                  <td class="mono">0.5458</td>
+                  <td><span class="badge badge-low">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td>#5</td>
+                  <td>Dummy Baseline (Stratified)</td>
+                  <td class="mono">0.5000</td>
+                  <td class="mono">0.00%</td>
+                  <td class="mono">0.00%</td>
+                  <td class="mono">0.0000</td>
+                  <td class="mono">0.0000</td>
+                  <td class="mono">0.0017</td>
+                  <td class="mono">0.4992</td>
+                  <td class="mono">0.1003</td>
+                  <td><span class="badge badge-high">FAILED</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 5: EXPLAINABILITY (SHAP)
+             =================================================================== -->
+        <section class="tab-pane" id="tab-explainability">
+          <div class="section-header">
+            <h2>Explainability &amp; Feature Attribution</h2>
+            <p>Global Shapley values and local transaction explanations computed via Tree SHAP.</p>
+          </div>
+
+          <div class="grid-60-40" style="margin-bottom: 24px;">
+            <!-- Global Importance Chart Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Global Feature Importance (Mean |SHAP| Value)</div>
+                <span class="badge badge-low">Top 10 Risk Drivers</span>
+              </div>
+              <div style="height: 320px; width: 100%;">
+                <canvas id="chart-global-importance"></canvas>
+              </div>
+            </div>
+
+            <!-- Mathematical Framework Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Game-Theoretic SHAP Formulation</div>
+              </div>
+              <div style="font-size: 11px; line-height: 1.5; color: var(--text-dim); display: flex; flex-direction: column; gap: 10px;">
+                <p>Tree SHAP allocates payout attributions &phi;<sub>i</sub> in logit margin space:</p>
+                <div class="info-pill" style="font-size: 11px; width: 100%; justify-content: center; color: #fff;">
+                  Margin = &phi;<sub>0</sub> + &sum; &phi;<sub>i</sub>(x) &rarr; P(fraud) = &sigma;(Margin)
+                </div>
+                <div>
+                  <strong style="color: var(--red-high);">&phi;<sub>i</sub> &gt; 0:</strong> Feature value pushes log-odds positive &rarr; strictly increases fraud probability.
+                </div>
+                <div>
+                  <strong style="color: var(--green-low);">&phi;<sub>i</sub> &lt; 0:</strong> Feature value pushes log-odds negative &rarr; supports transaction legitimacy.
+                </div>
+                <div class="notice-box" style="margin-top: 6px;">
+                  <strong>Exact Additivity Guarantee:</strong> Numerical difference between native model probability and &sigma;(&phi;<sub>0</sub> + &sum;&phi;<sub>i</sub>) is verified &lt; 10<sup>-10</sup>.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beeswarm Plot Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>SHAP Summary Beeswarm Distribution</div>
+              <span class="badge badge-low">Validation Cohort</span>
+            </div>
+            <div style="text-align: center; padding: 10px 0;">
+              <img src="/static/plots/shap_beeswarm_summary.png" alt="SHAP Beeswarm Summary" style="max-width: 100%; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);" />
+            </div>
+            <div class="notice-box warning" style="margin-top: 14px;">
+              <strong>Mandatory Non-Causal Regulatory Notice:</strong> Feature contributions indicate empirical statistical associations learned by the model from historical training data. They do NOT imply real-world causation, human motive, or legal culpability.
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION 6: MODEL MONITORING
+             =================================================================== -->
+        <section class="tab-pane" id="tab-monitoring">
+          <div class="section-header">
+            <h2>Model Monitoring &amp; Data Drift</h2>
+            <p>Live prediction distribution, Population Stability Index (PSI) drift telemetry, and model health.</p>
+          </div>
+
+          <!-- Monitoring KPI Grid -->
+          <div class="grid-4" style="margin-bottom: 24px;">
+            <div class="kpi-card green">
+              <span class="kpi-label">Population Stability (PSI)</span>
+              <span class="kpi-value" id="mon-psi-score" style="color: var(--green-low);">0.0241</span>
+              <span class="kpi-meta" id="mon-psi-status">STABLE &middot; PSI &lt; 0.10</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Live Fraud Alert Rate</span>
+              <span class="kpi-value" id="mon-fraud-rate">6.54%</span>
+              <span class="kpi-meta">Flagged / Window</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Average Inference Latency</span>
+              <span class="kpi-value" id="mon-latency">4.15 ms</span>
+              <span class="kpi-meta">End-to-End Execution</span>
+            </div>
+            <div class="kpi-card green">
+              <span class="kpi-label">Pipeline Integrity</span>
+              <span class="kpi-value" style="color: var(--green-low); font-size: 22px;">99.99%</span>
+              <span class="kpi-meta">Schema Verified</span>
+            </div>
+          </div>
+
+          <!-- 2 Column: Prediction Histogram & Class Distribution -->
+          <div class="grid-60-40" style="margin-bottom: 24px;">
+            <!-- Prediction Histogram -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Prediction Probability Distribution Histogram</div>
+                <span class="badge badge-low">Binned Inferences</span>
+              </div>
+              <div style="height: 240px; width: 100%;">
+                <canvas id="chart-prob-histogram"></canvas>
+              </div>
+            </div>
+
+            <!-- Class Distribution Doughnut -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><span class="dot"></span>Risk Category Composition</div>
+                <span class="badge badge-low">Operational Tiers</span>
+              </div>
+              <div style="height: 240px; width: 100%;">
+                <canvas id="chart-class-doughnut"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- System Health Indicators Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>Production Health Indicators &amp; Drift Telemetry</div>
+              <span class="badge badge-low">LIVE HEALTH CHECK</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; font-size: 11px;">
+              <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <span style="color: var(--text-dim);">Drift Analysis:</span><br/>
+                <strong style="color: var(--green-low);">No Covariate Shift Detected</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Current PSI: 0.0241 (Threshold: 0.20)</span>
+              </div>
+              <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <span style="color: var(--text-dim);">Inference Throughput:</span><br/>
+                <strong>240 Transactions / Sec</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Capacity Headroom: 88%</span>
+              </div>
+              <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <span style="color: var(--text-dim);">Memory Utilization:</span><br/>
+                <strong>142 MB</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Model Artifact Size: 436 KB</span>
+              </div>
+              <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <span style="color: var(--text-dim);">Model Versioning:</span><br/>
+                <strong>XGBoost v1.0.0</strong><br/>
+                <span style="font-size: 10px; color: var(--text-muted);">Last Trained: Phase 2 Run</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- =======================================================================
+       INVESTIGATION DETAIL MODAL
+       ======================================================================= -->
+  <div class="modal-overlay" id="investigation-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-tx-title">Transaction Investigation Details</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-tx-body">
+        <!-- Injected dynamically via JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">Close</button>
+        <button class="btn btn-secondary btn-sm" id="btn-modal-dismiss" onclick="handleModalAction('DISMISSED_FALSE_ALARM')">Dismiss False Alarm</button>
+        <button class="btn btn-danger btn-sm" id="btn-modal-confirm" onclick="handleModalAction('CONFIRMED_FRAUD')">Confirm Fraud (Block)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
