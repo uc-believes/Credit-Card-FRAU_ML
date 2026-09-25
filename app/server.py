@@ -62,6 +62,12 @@ def create_app() -> Flask:
     def index():
         return render_template("index.html")
 
+    @app.route("/dossier")
+    @app.route("/report")
+    def dossier():
+        docs_dir = root / "docs"
+        return send_from_directory(str(docs_dir), "PROJECT_EVALUATION_DOSSIER.html")
+
     @app.route("/health")
     def health():
         return jsonify({
