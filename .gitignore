@@ -7,13 +7,21 @@ data/processed/
 *.csv
 *.parquet
 
-# --- Trained Model Artifacts (large binary files) ---
+# --- Trained Model Artifacts ---
 artifacts/models/*.joblib
 artifacts/pipelines/*.joblib
 artifacts/monitoring_log.jsonl
 artifacts/investigation_queue.jsonl
 
-# Keep directory structure but not files
+# Whitelist production inference models for deployment (lightweight < 1MB)
+!artifacts/models/best_model.joblib
+!artifacts/models/xgboost.joblib
+!artifacts/models/decision_tree.joblib
+!artifacts/models/logistic_regression.joblib
+!artifacts/models/dummy_baseline.joblib
+!artifacts/pipelines/preprocessing_pipeline.joblib
+
+# Keep directory structure
 !artifacts/models/.gitkeep
 !artifacts/pipelines/.gitkeep
 !artifacts/metrics/.gitkeep

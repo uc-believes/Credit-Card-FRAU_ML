@@ -79,13 +79,16 @@ def create_app() -> Flask:
     return app
 
 
+# WSGI application entrypoint for Gunicorn / Render production servers
+app = create_app()
+
+
 def main():
     cfg = get_config()
     host = cfg.get("app", {}).get("host", "0.0.0.0")
     port = int(cfg.get("app", {}).get("port", 5000))
     debug = bool(cfg.get("app", {}).get("debug", False))
 
-    app = create_app()
     print("=" * 80)
     print(" FRAUD SHIELD — RISK INTELLIGENCE DASHBOARD")
     print(f" * Server running on: http://127.0.0.1:{port}")
